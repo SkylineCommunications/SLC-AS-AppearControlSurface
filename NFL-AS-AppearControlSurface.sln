@@ -66,6 +66,30 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{8ABF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GQI - Get Site Names_1", "GQI - Get Site Names_1\GQI - Get Site Names_1.csproj", "{590F7242-5D0C-4F0C-942E-DCFC032D672E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IAS - SRT Switching Connect", "IAS - SRT Switching Connect", "{5F30CAB7-544A-4CC9-A5BB-A67ED479E388}"
+	ProjectSection(SolutionItems) = preProject
+		IAS - SRT Switching Connect.xml = IAS - SRT Switching Connect.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{64668F1E-3EF7-4FF5-B2A4-11AB50E7DDE0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS - SRT Switching Connect_1", "IAS - SRT Switching Connect_1\IAS - SRT Switching Connect_1.csproj", "{777577F7-805C-422B-8F38-8F862AF8A67E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IAS", "IAS", "{5A1AFB50-329C-4E87-A670-DCFC323C4755}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IAS - SRT Switching Disconnect", "IAS - SRT Switching Disconnect", "{206F7A24-AF67-401F-A776-5932B8CD9187}"
+	ProjectSection(SolutionItems) = preProject
+		IAS - SRT Switching Disconnect.xml = IAS - SRT Switching Disconnect.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{D62506BB-7097-4961-BFEB-5F976117BFA7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS - SRT Switching Disconnect_1", "IAS - SRT Switching Disconnect_1\IAS - SRT Switching Disconnect_1.csproj", "{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{8CC440AE-59D3-47CC-8110-E30C9136EBBE}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Library", "Library\Library.shproj", "{307F958A-44D6-4ED4-A057-2E7A00705F9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,6 +108,14 @@ Global
 		{590F7242-5D0C-4F0C-942E-DCFC032D672E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{590F7242-5D0C-4F0C-942E-DCFC032D672E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{590F7242-5D0C-4F0C-942E-DCFC032D672E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{777577F7-805C-422B-8F38-8F862AF8A67E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{777577F7-805C-422B-8F38-8F862AF8A67E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{777577F7-805C-422B-8F38-8F862AF8A67E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{777577F7-805C-422B-8F38-8F862AF8A67E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -101,8 +133,21 @@ Global
 		{1F0ECBB7-F84F-4C1A-94DC-A14442F14AC1} = {CF2EDDA2-775C-4BD8-BC96-B8CD644DA197}
 		{8ABF1E5F-0DC6-48A4-9E06-D70560032BCF} = {1F0ECBB7-F84F-4C1A-94DC-A14442F14AC1}
 		{590F7242-5D0C-4F0C-942E-DCFC032D672E} = {8ABF1E5F-0DC6-48A4-9E06-D70560032BCF}
+		{5F30CAB7-544A-4CC9-A5BB-A67ED479E388} = {5A1AFB50-329C-4E87-A670-DCFC323C4755}
+		{64668F1E-3EF7-4FF5-B2A4-11AB50E7DDE0} = {5F30CAB7-544A-4CC9-A5BB-A67ED479E388}
+		{777577F7-805C-422B-8F38-8F862AF8A67E} = {64668F1E-3EF7-4FF5-B2A4-11AB50E7DDE0}
+		{5A1AFB50-329C-4E87-A670-DCFC323C4755} = {7162577B-2E55-43E2-A472-5E6109D3FCD0}
+		{206F7A24-AF67-401F-A776-5932B8CD9187} = {5A1AFB50-329C-4E87-A670-DCFC323C4755}
+		{D62506BB-7097-4961-BFEB-5F976117BFA7} = {206F7A24-AF67-401F-A776-5932B8CD9187}
+		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B} = {D62506BB-7097-4961-BFEB-5F976117BFA7}
+		{307F958A-44D6-4ED4-A057-2E7A00705F9D} = {8CC440AE-59D3-47CC-8110-E30C9136EBBE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4750F61A-EF8F-4EFE-BD0F-FBA09DE690D0}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Library\Library.projitems*{307f958a-44d6-4ed4-a057-2e7a00705f9d}*SharedItemsImports = 13
+		Library\Library.projitems*{777577f7-805c-422b-8f38-8f862af8a67e}*SharedItemsImports = 5
+		Library\Library.projitems*{8d8c0062-6028-4c58-9df5-cb0493bdfc0b}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
