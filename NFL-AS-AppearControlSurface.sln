@@ -1,0 +1,108 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33502.453
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Internal", "Internal", "{ADE0FF62-6493-4577-A1CA-1CA708BFA898}"
+	ProjectSection(SolutionItems) = preProject
+		Internal\.editorconfig = Internal\.editorconfig
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{7162577B-2E55-43E2-A472-5E6109D3FCD0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dlls", "Dlls", "{58D3681F-4BAC-4893-A20E-FD80E3004943}"
+	ProjectSection(SolutionItems) = preProject
+		Dlls\ABOUT.md = Dlls\ABOUT.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CompanionFiles", "CompanionFiles", "{C4AE0CA1-4212-4E6D-8BCA-18FE45ED7A53}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Skyline DataMiner", "Skyline DataMiner", "{EACC214E-5792-46EE-A1C5-D2E7953EE415}"
+	ProjectSection(SolutionItems) = preProject
+		CompanionFiles\Skyline DataMiner\AboutThisFolder.md = CompanionFiles\Skyline DataMiner\AboutThisFolder.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{1A3E8C90-9D8B-4040-B9B3-208FBE9248B7}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\ABOUT.md = Documentation\ABOUT.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F8938D60-51A0-4880-9CFC-19C66379BB5D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Code Analysis", "Code Analysis", "{10065709-329C-420A-8A7B-58B879FE7810}"
+	ProjectSection(SolutionItems) = preProject
+		Internal\Code Analysis\qaction-debug.ruleset = Internal\Code Analysis\qaction-debug.ruleset
+		Internal\Code Analysis\qaction-release.ruleset = Internal\Code Analysis\qaction-release.ruleset
+		Internal\Code Analysis\stylecop.json = Internal\Code Analysis\stylecop.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GQI - Get Sources", "GQI - Get Sources", "{FF58E989-4D3B-4970-B0AC-6A73B4B2E578}"
+	ProjectSection(SolutionItems) = preProject
+		GQI - Get Sources.xml = GQI - Get Sources.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{2539348A-9E0F-4E78-BEE5-F0E5949D0EE6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GQI", "GQI", "{CF2EDDA2-775C-4BD8-BC96-B8CD644DA197}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GQI - Get Sources_1", "GQI - Get Sources_1\GQI - Get Sources_1.csproj", "{4FEFA2AE-3726-4819-AD41-C03B539D6C6E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GQI - Get Destinations", "GQI - Get Destinations", "{97001A8D-B823-46B3-B6E6-4A19DA4281A2}"
+	ProjectSection(SolutionItems) = preProject
+		GQI - Get Destinations.xml = GQI - Get Destinations.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{A7750E87-D015-455E-B85A-28C4A4F9202D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GQI - Get Destinations_1", "GQI - Get Destinations_1\GQI - Get Destinations_1.csproj", "{9E8D69BE-F532-4CA2-8781-4AA5FB2904D4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GQI - Get Site Names", "GQI - Get Site Names", "{1F0ECBB7-F84F-4C1A-94DC-A14442F14AC1}"
+	ProjectSection(SolutionItems) = preProject
+		GQI - Get Site Names.xml = GQI - Get Site Names.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{8ABF1E5F-0DC6-48A4-9E06-D70560032BCF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GQI - Get Site Names_1", "GQI - Get Site Names_1\GQI - Get Site Names_1.csproj", "{590F7242-5D0C-4F0C-942E-DCFC032D672E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4FEFA2AE-3726-4819-AD41-C03B539D6C6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FEFA2AE-3726-4819-AD41-C03B539D6C6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FEFA2AE-3726-4819-AD41-C03B539D6C6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FEFA2AE-3726-4819-AD41-C03B539D6C6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E8D69BE-F532-4CA2-8781-4AA5FB2904D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E8D69BE-F532-4CA2-8781-4AA5FB2904D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E8D69BE-F532-4CA2-8781-4AA5FB2904D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E8D69BE-F532-4CA2-8781-4AA5FB2904D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{590F7242-5D0C-4F0C-942E-DCFC032D672E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{590F7242-5D0C-4F0C-942E-DCFC032D672E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{590F7242-5D0C-4F0C-942E-DCFC032D672E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{590F7242-5D0C-4F0C-942E-DCFC032D672E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EACC214E-5792-46EE-A1C5-D2E7953EE415} = {C4AE0CA1-4212-4E6D-8BCA-18FE45ED7A53}
+		{10065709-329C-420A-8A7B-58B879FE7810} = {ADE0FF62-6493-4577-A1CA-1CA708BFA898}
+		{FF58E989-4D3B-4970-B0AC-6A73B4B2E578} = {CF2EDDA2-775C-4BD8-BC96-B8CD644DA197}
+		{2539348A-9E0F-4E78-BEE5-F0E5949D0EE6} = {FF58E989-4D3B-4970-B0AC-6A73B4B2E578}
+		{CF2EDDA2-775C-4BD8-BC96-B8CD644DA197} = {7162577B-2E55-43E2-A472-5E6109D3FCD0}
+		{4FEFA2AE-3726-4819-AD41-C03B539D6C6E} = {2539348A-9E0F-4E78-BEE5-F0E5949D0EE6}
+		{97001A8D-B823-46B3-B6E6-4A19DA4281A2} = {CF2EDDA2-775C-4BD8-BC96-B8CD644DA197}
+		{A7750E87-D015-455E-B85A-28C4A4F9202D} = {97001A8D-B823-46B3-B6E6-4A19DA4281A2}
+		{9E8D69BE-F532-4CA2-8781-4AA5FB2904D4} = {A7750E87-D015-455E-B85A-28C4A4F9202D}
+		{1F0ECBB7-F84F-4C1A-94DC-A14442F14AC1} = {CF2EDDA2-775C-4BD8-BC96-B8CD644DA197}
+		{8ABF1E5F-0DC6-48A4-9E06-D70560032BCF} = {1F0ECBB7-F84F-4C1A-94DC-A14442F14AC1}
+		{590F7242-5D0C-4F0C-942E-DCFC032D672E} = {8ABF1E5F-0DC6-48A4-9E06-D70560032BCF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4750F61A-EF8F-4EFE-BD0F-FBA09DE690D0}
+	EndGlobalSection
+EndGlobal
