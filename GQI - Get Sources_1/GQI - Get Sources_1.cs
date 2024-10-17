@@ -65,6 +65,7 @@ namespace GQI_GetSources
     {
         private readonly GQIStringDropdownArgument routingModeArg = new GQIStringDropdownArgument("Routing Mode", new[] { "IP TS", "SRT" }) { IsRequired = true };
         private readonly GQIStringArgument siteLocationeArg = new GQIStringArgument("Site Location") { IsRequired = false, DefaultValue = string.Empty };
+        private readonly GQIStringArgument srtModeArg = new GQIStringArgument("SRT Mode") { IsRequired = false, DefaultValue = string.Empty };
 
         private readonly Dictionary<string, string> exceptionsDict = new Dictionary<string, string>
         {
@@ -75,11 +76,12 @@ namespace GQI_GetSources
         private readonly Dictionary<int, string> StateDict = new Dictionary<int, string>
         {
             {1, "Enabled"},
-            {2, "Disabled" },
+            {0, "Disabled" },
         };
 
         private string _routingMode;
         private string _siteLocation;
+        private string _srtMode;
         private GQIDMS _dms;
 
         public OnInitOutputArgs OnInit(OnInitInputArgs args)
@@ -100,24 +102,25 @@ namespace GQI_GetSources
                 new GQIStringColumn("Path Caller Source Port"),
                 new GQIStringColumn("Path Caller Destination Port"),
                 new GQIStringColumn("Path Listener Port"),
+                new GQIStringColumn("Element Name"),
             };
         }
 
         public GQIArgument[] GetInputArguments()
         {
-            return new GQIArgument[] { routingModeArg, siteLocationeArg };
+            return new GQIArgument[] { routingModeArg, siteLocationeArg, srtModeArg };
         }
 
         public OnArgumentsProcessedOutputArgs OnArgumentsProcessed(OnArgumentsProcessedInputArgs args)
         {
             args.TryGetArgumentValue(routingModeArg, out _routingMode);
             args.TryGetArgumentValue(siteLocationeArg, out _siteLocation);
+            args.TryGetArgumentValue(srtModeArg, out _srtMode);
             return new OnArgumentsProcessedOutputArgs();
         }
 
         public GQIPage GetNextPage(GetNextPageInputArgs args)
         {
-            var stopwatch = Stopwatch.StartNew();
             var rows = new List<GQIRow>();
             try
             {
@@ -200,6 +203,7 @@ namespace GQI_GetSources
                      new GQICell { },
                      new GQICell { },
                      new GQICell { },
+                     new GQICell { },
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -234,6 +238,19 @@ namespace GQI_GetSources
                     status = "N/A";
                 }
 
+                if (_srtMode == "LISTENER" && pathMode == "LISTENER")
+                {
+                    continue;
+                }
+                else if (_srtMode == "CALLER" && pathMode == "CALLER")
+                {
+                    continue;
+                }
+                else
+                {
+                    // No Filter Action
+                }
+
                 cells = new[]
                 {
                      new GQICell { Value = index },
@@ -244,6 +261,7 @@ namespace GQI_GetSources
                      new GQICell { Value = pathCallerSourcePort },
                      new GQICell { Value = pathCallerDestinationPort },
                      new GQICell { Value = pathListenerPort },
+                     new GQICell { Value = response.Name},
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -260,6 +278,7 @@ namespace GQI_GetSources
             var cells = new[]
             {
                      new GQICell { Value = message },
+                     new GQICell {},
                      new GQICell {},
                      new GQICell {},
                      new GQICell {},
