@@ -52,8 +52,8 @@ dd/mm/2024	1.0.0.1		XXX, Skyline	Initial version
 namespace IAS_SRT_Switching_Connect_1
 {
 	using System;
-	using Library.Dialogs;
-	using Library.SharedMethods;
+	using Shared.Dialogs;
+	using Shared.SharedMethods;
 	using Skyline.DataMiner.Automation;
 	using Skyline.DataMiner.Core.DataMinerSystem.Automation;
 	using Skyline.DataMiner.Core.DataMinerSystem.Common;
@@ -63,12 +63,6 @@ namespace IAS_SRT_Switching_Connect_1
     /// </summary>
 	public class Script
 	{
-		private enum Status
-		{
-			Disabled = 0,
-			Enabled = 1,
-		}
-
 		/// <summary>
 		/// The script entry point.
 		/// </summary>
@@ -160,31 +154,42 @@ namespace IAS_SRT_Switching_Connect_1
                 // no action
             }
 
-			if (Convert.ToString(srcRow[6] /*SRT Mode*/) == Convert.ToString(dstRow[7]/*SRT Mode*/))
+			var srcSrtMode = Convert.ToString(srcRow[6] /*SRT Mode*/);
+			var dstSrtMode = Convert.ToString(dstRow[7]/*SRT Mode*/);
+
+			if (srcSrtMode == dstSrtMode)
 			{
 				var message = $"Selected Source and Destination have the same Mode ({Convert.ToString(srcRow[6] /*SRT Mode*/)}). Please select one Caller and one Listener.";
 				ErrorMessageDialog.ShowMessage(engine, message);
 				return;
             }
 
-			var srcDisabled = Convert.ToInt32(srcRow[3 /*Status*/]) == (int)Status.Disabled;
-			var dstDisabled = Convert.ToInt32(dstRow[3 /*Status*/]) == (int)Status.Disabled;
+			var srcDisabled = Convert.ToInt32(srcRow[3 /*Status*/]) == (int)SharedMethods.Status.Disabled;
+			var dstDisabled = Convert.ToInt32(dstRow[3 /*Status*/]) == (int)SharedMethods.Status.Disabled;
 
 			// TODO: Set the right values for IP and Port
 			var dstIpAddress = Convert.ToString(dstRow[3 /*Status*/]);
 			var dstPort = Convert.ToString(dstRow[3 /*Status*/]);
 
-			srcElement.SetParameterByPrimaryKey(14059, sourceId, dstIpAddress);
-			srcElement.SetParameterByPrimaryKey(14060, sourceId, dstPort);
+			if (srcSrtMode == "Caller")
+			{
+                srcElement.SetParameterByPrimaryKey(12058, sourceId, dstIpAddress);
+                srcElement.SetParameterByPrimaryKey(12059, sourceId, dstPort);
+            }
+			else
+			{
+                dstElement.SetParameterByPrimaryKey(14059, sourceId, dstIpAddress);
+                dstElement.SetParameterByPrimaryKey(14060, sourceId, dstPort);
+            }
 
 			if (srcDisabled)
 			{
-                srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)Status.Enabled);
+                srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)SharedMethods.Status.Enabled);
             }
 
 			if (dstDisabled)
 			{
-                dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)Status.Enabled);
+                dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)SharedMethods.Status.Enabled);
             }
         }
     }

@@ -49,25 +49,29 @@ dd/mm/2024	1.0.0.1		XXX, Skyline	Initial version
 ****************************************************************************
 */
 
-namespace IAS_SRT_Switching_Disconnect_1
+namespace IAS___IP_Switching_Connect_1
 {
-    using System;
+	using System;
+	using System.Collections.Generic;
+	using System.Globalization;
+	using System.Text;
     using Shared.Dialogs;
     using Shared.SharedMethods;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Common;
+    using Skyline.DataMiner.Net;
 
     /// <summary>
     /// Represents a DataMiner Automation script.
     /// </summary>
-    public class Script
+	public class Script
 	{
-        /// <summary>
-        /// The script entry point.
-        /// </summary>
-        /// <param name="engine">Link with SLAutomation process.</param>
-        public void Run(IEngine engine)
+		/// <summary>
+		/// The script entry point.
+		/// </summary>
+		/// <param name="engine">Link with SLAutomation process.</param>
+		public void Run(IEngine engine)
 		{
             // DO NOT REMOVE THIS COMMENTED-OUT CODE OR THE SCRIPT WON'T RUN!
             // DataMiner evaluates if the script needs to launch in interactive mode.
@@ -107,13 +111,13 @@ namespace IAS_SRT_Switching_Disconnect_1
 			}
 		}
 
-        private void RunSafe(IEngine engine)
+		private void RunSafe(IEngine engine)
 		{
             var dms = engine.GetDms();
 
-            var sourceId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("SRT Source").Value);
+            var sourceId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("IP Source").Value);
             var sourceElement = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Source Element").Value);
-            var destinationId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("SRT Destination").Value);
+            var destinationId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("IP Destination").Value);
             var destinationElement = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Destination Element").Value);
 
             var srcElementSplitted = sourceElement.Split('/');
@@ -129,23 +133,24 @@ namespace IAS_SRT_Switching_Disconnect_1
             var dstElementId = new DmsElementId(Convert.ToInt32(dstElementSplitted[0]), Convert.ToInt32(dstElementSplitted[1]));
 
             var srcDmsElement = dms.GetElement(srcElementId);
+            var dstDmsElement = dms.GetElement(dstElementId);
             var srcElement = engine.FindElement(srcElementId.AgentId, srcElementId.ElementId);
             var dstElement = engine.FindElement(dstElementId.AgentId, dstElementId.ElementId);
 
-            var srcTable = srcDmsElement.GetTable(12000 /*SRT Outputs*/);
-            var dstTable = srcDmsElement.GetTable(14000 /*SRT Outputs*/);
+            var srcTable = srcDmsElement.GetTable(1600 /*IP Outputs*/);
+            var dstTable = dstDmsElement.GetTable(1500 /*IP Inputs*/);
 
             var srcRow = srcTable.GetRow(sourceId);
             var dstRow = dstTable.GetRow(destinationId);
 
             if (srcRow == null)
             {
-                ErrorMessageDialog.ShowMessage(engine, $"Row not found on SRT Outputs table. Row key: {sourceId}");
+                ErrorMessageDialog.ShowMessage(engine, $"Row not found on IP Outputs table. Row key: {sourceId}");
                 return;
             }
             else if (dstRow == null)
             {
-                ErrorMessageDialog.ShowMessage(engine, $"Row not found on SRT Inputs table. Row key: {destinationId}");
+                ErrorMessageDialog.ShowMessage(engine, $"Row not found on IP Inputs table. Row key: {destinationId}");
                 return;
             }
             else
@@ -153,13 +158,23 @@ namespace IAS_SRT_Switching_Disconnect_1
                 // no action
             }
 
-            if (Convert.ToString(srcRow[6] /*SRT Mode*/) == "CALLER")
+            var srcDisabled = Convert.ToInt32(srcRow[2 /*Status*/]) == (int)SharedMethods.Status.Disabled;
+            var dstDisabled = Convert.ToInt32(dstRow[2 /*Status*/]) == (int)SharedMethods.Status.Disabled;
+
+            var srcIpAddress = Convert.ToString(srcRow[5 /*Single Destination IP*/]);
+            var srcPort = Convert.ToString(srcRow[6 /*Single Destination Port*/]);
+
+            dstElement.SetParameterByPrimaryKey(1546, sourceId, srcIpAddress);
+            dstElement.SetParameterByPrimaryKey(1547, sourceId, srcPort);
+
+            if (srcDisabled)
             {
-                srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)SharedMethods.Status.Disabled);
+                srcElement.SetParameterByPrimaryKey(1643, sourceId, (int)SharedMethods.Status.Enabled);
             }
-            else
+
+            if (dstDisabled)
             {
-                dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)SharedMethods.Status.Disabled);
+                dstElement.SetParameterByPrimaryKey(1543, destinationId, (int)SharedMethods.Status.Enabled);
             }
         }
 	}

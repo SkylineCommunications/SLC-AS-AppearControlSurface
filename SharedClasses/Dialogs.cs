@@ -1,4 +1,4 @@
-﻿namespace Library.Dialogs
+﻿namespace Shared.Dialogs
 {
     using System;
     using Skyline.DataMiner.Automation;

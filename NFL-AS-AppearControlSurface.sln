@@ -86,9 +86,29 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{D625
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS - SRT Switching Disconnect_1", "IAS - SRT Switching Disconnect_1\IAS - SRT Switching Disconnect_1.csproj", "{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{8CC440AE-59D3-47CC-8110-E30C9136EBBE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedClasses", "SharedClasses", "{8CC440AE-59D3-47CC-8110-E30C9136EBBE}"
+	ProjectSection(SolutionItems) = preProject
+		SharedClasses\Dialogs.cs = SharedClasses\Dialogs.cs
+		SharedClasses\SharedMethods.cs = SharedClasses\SharedMethods.cs
+	EndProjectSection
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Library", "Library\Library.shproj", "{307F958A-44D6-4ED4-A057-2E7A00705F9D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IAS - IP Switching Connect", "IAS - IP Switching Connect", "{7D6DB72D-2BF8-4A18-920F-943A36E824D4}"
+	ProjectSection(SolutionItems) = preProject
+		IAS - IP Switching Connect.xml = IAS - IP Switching Connect.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{E07386BA-33BD-4AAB-9D0E-857B2C4B8740}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS - IP Switching Connect_1", "IAS - IP Switching Connect_1\IAS - IP Switching Connect_1.csproj", "{F702865E-6714-4800-AC7A-942150101E9F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IAS - IP Switching Disconnect", "IAS - IP Switching Disconnect", "{F5EBAB37-658A-4185-8086-6C726E30DE1C}"
+	ProjectSection(SolutionItems) = preProject
+		IAS - IP Switching Disconnect.xml = IAS - IP Switching Disconnect.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{29D21495-DB96-4D0B-AE89-BE18F8222B65}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS - IP Switching Disconnect_1", "IAS - IP Switching Disconnect_1\IAS - IP Switching Disconnect_1.csproj", "{2B7C6867-AFFA-436D-BFCE-3E38E3FAFEF5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -116,6 +136,14 @@ Global
 		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F702865E-6714-4800-AC7A-942150101E9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F702865E-6714-4800-AC7A-942150101E9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F702865E-6714-4800-AC7A-942150101E9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F702865E-6714-4800-AC7A-942150101E9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B7C6867-AFFA-436D-BFCE-3E38E3FAFEF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B7C6867-AFFA-436D-BFCE-3E38E3FAFEF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B7C6867-AFFA-436D-BFCE-3E38E3FAFEF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B7C6867-AFFA-436D-BFCE-3E38E3FAFEF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -140,13 +168,17 @@ Global
 		{206F7A24-AF67-401F-A776-5932B8CD9187} = {5A1AFB50-329C-4E87-A670-DCFC323C4755}
 		{D62506BB-7097-4961-BFEB-5F976117BFA7} = {206F7A24-AF67-401F-A776-5932B8CD9187}
 		{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B} = {D62506BB-7097-4961-BFEB-5F976117BFA7}
-		{307F958A-44D6-4ED4-A057-2E7A00705F9D} = {8CC440AE-59D3-47CC-8110-E30C9136EBBE}
+		{7D6DB72D-2BF8-4A18-920F-943A36E824D4} = {5A1AFB50-329C-4E87-A670-DCFC323C4755}
+		{E07386BA-33BD-4AAB-9D0E-857B2C4B8740} = {7D6DB72D-2BF8-4A18-920F-943A36E824D4}
+		{F702865E-6714-4800-AC7A-942150101E9F} = {E07386BA-33BD-4AAB-9D0E-857B2C4B8740}
+		{F5EBAB37-658A-4185-8086-6C726E30DE1C} = {5A1AFB50-329C-4E87-A670-DCFC323C4755}
+		{29D21495-DB96-4D0B-AE89-BE18F8222B65} = {F5EBAB37-658A-4185-8086-6C726E30DE1C}
+		{2B7C6867-AFFA-436D-BFCE-3E38E3FAFEF5} = {29D21495-DB96-4D0B-AE89-BE18F8222B65}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4750F61A-EF8F-4EFE-BD0F-FBA09DE690D0}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Library\Library.projitems*{307f958a-44d6-4ed4-a057-2e7a00705f9d}*SharedItemsImports = 13
 		Library\Library.projitems*{777577f7-805c-422b-8f38-8f862af8a67e}*SharedItemsImports = 5
 		Library\Library.projitems*{8d8c0062-6028-4c58-9df5-cb0493bdfc0b}*SharedItemsImports = 5
 	EndGlobalSection
