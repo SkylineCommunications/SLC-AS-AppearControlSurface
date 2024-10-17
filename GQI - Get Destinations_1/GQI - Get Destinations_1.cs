@@ -61,6 +61,7 @@ namespace GQI_GetDestinations
     using Skyline.DataMiner.Net;
     using Skyline.DataMiner.Net.Helper;
     using Skyline.DataMiner.Net.Messages;
+    using Skyline.DataMiner.Net.Messages.SLDataGateway;
 
     [GQIMetaData(Name = "GQI - Get Destinations")]
     public sealed class GetSource : IGQIDataSource, IGQIOnInit, IGQIInputArguments
@@ -85,6 +86,7 @@ namespace GQI_GetDestinations
         private string _siteLocation;
         private string _srtMode;
         private GQIDMS _dms;
+        private List<LiteElementInfoEvent> appearTvResponses;
 
         public OnInitOutputArgs OnInit(OnInitInputArgs args)
         {
@@ -105,6 +107,7 @@ namespace GQI_GetDestinations
                 new GQIStringColumn("Caller Destination Port"),
                 new GQIStringColumn("Listener Port"),
                 new GQIStringColumn("Element Name"),
+                new GQIStringColumn("Source Connected Label"),
             };
         }
 
@@ -135,9 +138,9 @@ namespace GQI_GetDestinations
                     View = siteFilter,
                 };
 
-                var appearTvResponses = _dms.SendMessages(new DMSMessage[] { appearTVRequest });
-
-                foreach (var response in appearTvResponses.Select(x => (LiteElementInfoEvent)x))
+                var appearMessage = _dms.SendMessages(new DMSMessage[] { appearTVRequest });
+                appearTvResponses = appearMessage.Select(x => (LiteElementInfoEvent)x).ToList();
+                foreach (var response in appearTvResponses)
                 {
                     if (response == null || response.State != ElementState.Active)
                     {
@@ -205,6 +208,7 @@ namespace GQI_GetDestinations
                      new GQICell { },
                      new GQICell { },
                      new GQICell { },
+                     new GQICell { },
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -220,7 +224,7 @@ namespace GQI_GetDestinations
         {
             GQICell[] cells;
 
-            // Sources - Outputs
+            var possibleSources = appearTvResponses.Where(x => (x.Name != response.Name) && (x.State == ElementState.Active)).ToList();
             for (int i = 0; i < destinationsTable.Length; i++)
             {
                 var destinationTableRow = destinationsTable[i];
@@ -232,7 +236,6 @@ namespace GQI_GetDestinations
                 var pathCallerSourcePort = CheckExceptionValue(destinationTableRow[9 /*path 1 Caller Source Port*/]);
                 var pathCallerDestinationPort = CheckExceptionValue(destinationTableRow[10 /*path 1 Caller Destination Port*/]);
                 var pathListenerPort = CheckExceptionValue(destinationTableRow[11 /*path 1 Caller Listener Port*/]);
-
 
                 if (_srtMode == "LISTENER" && pathMode == "LISTENER")
                 {
@@ -247,11 +250,16 @@ namespace GQI_GetDestinations
                     // No Filter Action
                 }
 
-
                 string status;
                 if (!StateDict.TryGetValue(intStatus, out status))
                 {
                     status = "N/A";
+                }
+
+                var sourceLabelName = "No Connection";
+                if (status == "Enabled")
+                {
+                    sourceLabelName = FindSourceConnection(possibleSources, destinationTableRow);
                 }
 
                 cells = new[]
@@ -265,6 +273,7 @@ namespace GQI_GetDestinations
                      new GQICell { Value = pathCallerDestinationPort },
                      new GQICell { Value = pathListenerPort },
                      new GQICell { Value = response.Name},
+                     new GQICell { Value = sourceLabelName},
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -276,11 +285,81 @@ namespace GQI_GetDestinations
             }
         }
 
+        private string FindSourceConnection(List<LiteElementInfoEvent> possibleSources, object[] destinationTableRow)
+        {
+            if (!possibleSources.Any())
+            {
+                return "No Connection";
+            }
+
+            foreach (var possibleSource in possibleSources)
+            {
+                // if pathMode is listener, need to find the source srt that have the sourcePort == ListenerPort, get the caller Address, go back to destination Element and in dual IP table find the matching IP
+                // For now will only compare the ports
+
+                // if pathMode is caller, need to grab the caller source port from destination element, go to the dual ip interfaces table, find the matching IP, get the slot and then find the matching row by slot and sourcePort == ListenerPort
+
+                var sourcesTable = GetTable(_dms, possibleSource, 12000 /*SRT Outputs*/);
+
+                var pathMode = Convert.ToString(destinationTableRow[7 /*Path Mode*/]);
+                if (pathMode == "LISTENER")
+                {
+                    for (int i = 0; i < sourcesTable.Length; i++)
+                    {
+                        var sourceRow = sourcesTable[i];
+                        var intStatus = Convert.ToInt32(sourceRow[3 /*Status*/]);
+                        var pathSourceMode = Convert.ToString(sourceRow[6 /*Path Mode*/]);
+
+                        if (pathSourceMode != "CALLER" || intStatus != 1 /*Enabled*/)
+                        {
+                            continue;
+                        }
+
+                        var pathCallerSourcePort = CheckExceptionValue(sourceRow[8 /*path 1 Caller Source Port*/]);
+                        var pathListenerPort = CheckExceptionValue(destinationTableRow[11 /*path 1 Caller Listener Port*/]);
+                        if (pathCallerSourcePort == pathListenerPort)
+                        {
+                            return Convert.ToString(sourceRow[2]);
+                        }
+                    }
+                }
+                else if (pathMode == "CALLER")
+                {
+                    for (int i = 0; i < sourcesTable.Length; i++)
+                    {
+                        var sourceRow = sourcesTable[i];
+                        var intStatus = Convert.ToInt32(sourceRow[3 /*Status*/]);
+                        var pathSourceMode = Convert.ToString(sourceRow[6 /*Path Mode*/]);
+
+                        if (pathSourceMode != "LISTENER" || intStatus != 1 /*Enabled*/)
+                        {
+                            continue;
+                        }
+
+                        var pathListenerSourcePort = CheckExceptionValue(sourceRow[10 /*path 1 Listener Source Port*/]);
+                        var pathCallerSourcePort = CheckExceptionValue(destinationTableRow[9 /*path 1 Caller Source Port*/]);
+
+                        if (pathCallerSourcePort == pathListenerSourcePort)
+                        {
+                            return Convert.ToString(sourceRow[2]);
+                        }
+                    }
+                }
+                else
+                {
+                    // Not supported action
+                }
+            }
+
+            return "No Connection";
+        }
+
         private GQIRow CreateDebugRow(string message)
         {
             var cells = new[]
             {
                      new GQICell { Value = message },
+                     new GQICell {},
                      new GQICell {},
                      new GQICell {},
                      new GQICell {},
