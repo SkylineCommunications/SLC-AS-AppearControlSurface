@@ -63,7 +63,7 @@ namespace GQI_GetSources
     [GQIMetaData(Name = "GQI - Get Sources")]
     public sealed class GetSource : IGQIDataSource, IGQIOnInit, IGQIInputArguments
     {
-        private readonly GQIStringDropdownArgument routingModeArg = new GQIStringDropdownArgument("Routing Mode", new[] { "IP TS", "SRT" }) { IsRequired = true };
+        private readonly GQIStringArgument routingModeArg = new GQIStringArgument("Routing Mode") { IsRequired = true };
         private readonly GQIStringArgument siteLocationeArg = new GQIStringArgument("Site Location") { IsRequired = false, DefaultValue = string.Empty };
         private readonly GQIStringArgument srtModeArg = new GQIStringArgument("SRT Mode") { IsRequired = false, DefaultValue = string.Empty };
 

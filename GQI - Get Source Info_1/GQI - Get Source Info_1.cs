@@ -49,25 +49,22 @@ dd/mm/2024	1.0.0.1		XXX, Skyline	Initial version
 ****************************************************************************
 */
 
-namespace GQI_GetDestinations
+namespace GQI_GetSourceInfo
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
-    using System.Net.NetworkInformation;
-    using System.Reflection.Emit;
     using Skyline.DataMiner.Analytics.GenericInterface;
     using Skyline.DataMiner.Net;
     using Skyline.DataMiner.Net.Helper;
     using Skyline.DataMiner.Net.Messages;
 
-    [GQIMetaData(Name = "GQI - Get Destinations")]
-    public sealed class GetSource : IGQIDataSource, IGQIOnInit, IGQIInputArguments
+    [GQIMetaData(Name = "GQI - Get Source Info")]
+    public sealed class GetSourceInfo : IGQIDataSource, IGQIOnInit, IGQIInputArguments
     {
         private readonly GQIStringArgument routingModeArg = new GQIStringArgument("Routing Mode") { IsRequired = true };
-        private readonly GQIStringArgument siteLocationeArg = new GQIStringArgument("Site Location") { IsRequired = false, DefaultValue = string.Empty };
-        private readonly GQIStringArgument srtModeArg = new GQIStringArgument("SRT Mode") { IsRequired = false, DefaultValue = string.Empty };
+        private readonly GQIStringArgument elementNameArg = new GQIStringArgument("Element Name") { IsRequired = true };
+        private readonly GQIStringArgument sourceIdArg = new GQIStringArgument("Source ID") { IsRequired = true };
 
         private readonly Dictionary<string, string> exceptionsDict = new Dictionary<string, string>
         {
@@ -75,15 +72,22 @@ namespace GQI_GetDestinations
             {"-2", "N/A" },
         };
 
-        private readonly Dictionary<int, string> StateDict = new Dictionary<int, string>
+        private readonly Dictionary<string, string> SocketStateDict = new Dictionary<string, string>
         {
-            {1, "Enabled"},
-            {0, "Disabled" },
+            { "SRT_INIT", "Initializing" },
+            { "SRT_OPENED", "Socket Opened" },
+            { "SRT_LISTENING", "Listening" },
+            { "SRT_CONNECTING", "Connecting" },
+            { "SRT_CONNECTED", "Connected" },
+            { "SRT_BROKEN", "Broken" },
+            { "SRT_CLOSING", "Closing" },
+            { "SRT_CLOSED", "Closed" },
+            { "SRT_NONEXIST", "Non-Existent" },
         };
 
+        private string _elementName;
+        private string _sourceId;
         private string _routingMode;
-        private string _siteLocation;
-        private string _srtMode;
         private GQIDMS _dms;
 
         public OnInitOutputArgs OnInit(OnInitInputArgs args)
@@ -97,27 +101,21 @@ namespace GQI_GetDestinations
             return new GQIColumn[]
             {
                 new GQIStringColumn("ID"),
-                new GQIStringColumn("Label"),
-                new GQIStringColumn("Status"),
-                new GQIStringColumn("SRT Mode"),
-                new GQIStringColumn("Caller Address"),
-                new GQIStringColumn("Caller Source Port"),
-                new GQIStringColumn("Caller Destination Port"),
-                new GQIStringColumn("Listener Port"),
-                new GQIStringColumn("Element Name"),
+                new GQIStringColumn("Socket State"),
+                new GQIDoubleColumn("Total Bitrate"),
             };
         }
 
         public GQIArgument[] GetInputArguments()
         {
-            return new GQIArgument[] { routingModeArg, siteLocationeArg, srtModeArg };
+            return new GQIArgument[] { elementNameArg, sourceIdArg, routingModeArg };
         }
 
         public OnArgumentsProcessedOutputArgs OnArgumentsProcessed(OnArgumentsProcessedInputArgs args)
         {
+            args.TryGetArgumentValue(elementNameArg, out _elementName);
+            args.TryGetArgumentValue(sourceIdArg, out _sourceId);
             args.TryGetArgumentValue(routingModeArg, out _routingMode);
-            args.TryGetArgumentValue(siteLocationeArg, out _siteLocation);
-            args.TryGetArgumentValue(srtModeArg, out _srtMode);
             return new OnArgumentsProcessedOutputArgs();
         }
 
@@ -126,13 +124,11 @@ namespace GQI_GetDestinations
             var rows = new List<GQIRow>();
             try
             {
-                var siteFilter = !_siteLocation.IsNullOrEmpty() ? $"{_siteLocation}" : "Appear X Platform";
-
                 var appearTVRequest = new GetLiteElementInfo
                 {
+                    NameFilter = _elementName,
                     ProtocolName = "Appear X Platform",
                     ProtocolVersion = "Production",
-                    View = siteFilter,
                 };
 
                 var appearTvResponses = _dms.SendMessages(new DMSMessage[] { appearTVRequest });
@@ -144,17 +140,16 @@ namespace GQI_GetDestinations
                         continue;
                     }
 
-                    object[][] destinationsTable;
+                    object[][] sourcesStatusTable;
 
                     if (_routingMode.Contains("SRT"))
                     {
-                        destinationsTable = GetTable(_dms, response, 14000 /*SRT Inputs*/);
-                        GetDestinationSrtRows(response, rows, destinationsTable);
+                        sourcesStatusTable = GetTable(_dms, response, 11400 /*SRT Outputs Status*/);
+                        GetSourceSrtRows(response, rows, sourcesStatusTable);
                     }
                     else if (_routingMode.Contains("IP"))
                     {
-                        destinationsTable = GetTable(_dms, response, 1500 /*IP Inputs*/);
-                        GetDestinationIpRows(response, rows, destinationsTable);
+                        rows.Add(CreateDebugRow($"not implemented feature"));
                     }
                     else
                     {
@@ -177,94 +172,40 @@ namespace GQI_GetDestinations
             }
         }
 
-        private void GetDestinationIpRows(LiteElementInfoEvent response, List<GQIRow> rows, object[][] destinationTable)
+        private void GetSourceSrtRows(LiteElementInfoEvent response, List<GQIRow> rows, object[][] sourcesStatusTable)
         {
             GQICell[] cells;
-
-            for (int i = 0; i < destinationTable.Length; i++)
+            for (int i = 0; i < sourcesStatusTable.Length; i++)
             {
-                var destinationTableRow = destinationTable[i];
-                var index = Convert.ToString(destinationTableRow[0]);
-                var label = Convert.ToString(destinationTableRow[1 /*label*/]);
-                var intStatus = Convert.ToInt32(destinationTableRow[2 /*Status*/]);
+                var sourceStatusTableRow = sourcesStatusTable[i];
+                var index = Convert.ToString(sourceStatusTableRow[0]);
 
-                string status;
-                if (!StateDict.TryGetValue(intStatus, out status))
+                if (index != _sourceId)
                 {
-                    status = "N/A";
+                    continue;
+                }
+
+                var socketState = CheckExceptionValue(sourceStatusTableRow[6]);
+                var totalBitrate = Convert.ToDouble(sourceStatusTableRow[11]);
+                string socketValue;
+
+                if (!SocketStateDict.TryGetValue(socketState, out socketValue))
+                {
+                    socketValue = "N/A";
+                }
+
+                totalBitrate = Math.Round(totalBitrate, 3);
+                var sTotalBitrate = $"{totalBitrate} Mbps";
+                if (totalBitrate < 0)
+                {
+                    sTotalBitrate = "N/A";
                 }
 
                 cells = new[]
                 {
                      new GQICell { Value = index },
-                     new GQICell { Value = label },
-                     new GQICell { Value = status },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                };
-
-                var elementID = new ElementID(response.DataMinerID, response.ElementID);
-                var elementMetadata = new ObjectRefMetadata { Object = elementID };
-                var rowMetadata = new GenIfRowMetadata(new[] { elementMetadata });
-                var row = new GQIRow(cells) { Metadata = rowMetadata };
-
-                rows.Add(row);
-            }
-        }
-
-        private void GetDestinationSrtRows(LiteElementInfoEvent response, List<GQIRow> rows, object[][] destinationsTable)
-        {
-            GQICell[] cells;
-
-            // Sources - Outputs
-            for (int i = 0; i < destinationsTable.Length; i++)
-            {
-                var destinationTableRow = destinationsTable[i];
-                var index = Convert.ToString(destinationTableRow[0]);
-                var label = Convert.ToString(destinationTableRow[2 /*label*/]);
-                var intStatus = Convert.ToInt32(destinationTableRow[3 /*Status*/]);
-                var pathMode = Convert.ToString(destinationTableRow[7 /*Path Mode*/]);
-                var pathCallerAddess = CheckExceptionValue(destinationTableRow[8 /*path 1 Caller Address*/]);
-                var pathCallerSourcePort = CheckExceptionValue(destinationTableRow[9 /*path 1 Caller Source Port*/]);
-                var pathCallerDestinationPort = CheckExceptionValue(destinationTableRow[10 /*path 1 Caller Destination Port*/]);
-                var pathListenerPort = CheckExceptionValue(destinationTableRow[11 /*path 1 Caller Listener Port*/]);
-
-
-                if (_srtMode == "LISTENER" && pathMode == "LISTENER")
-                {
-                    continue;
-                }
-                else if (_srtMode == "CALLER" && pathMode == "CALLER")
-                {
-                    continue;
-                }
-                else
-                {
-                    // No Filter Action
-                }
-
-
-                string status;
-                if (!StateDict.TryGetValue(intStatus, out status))
-                {
-                    status = "N/A";
-                }
-
-                cells = new[]
-                {
-                     new GQICell { Value = index },
-                     new GQICell { Value = label },
-                     new GQICell { Value = status },
-                     new GQICell { Value = pathMode},
-                     new GQICell { Value = pathCallerAddess},
-                     new GQICell { Value = pathCallerSourcePort },
-                     new GQICell { Value = pathCallerDestinationPort },
-                     new GQICell { Value = pathListenerPort },
-                     new GQICell { Value = response.Name},
+                     new GQICell { Value = socketValue },
+                     new GQICell { Value = totalBitrate, DisplayValue = sTotalBitrate},
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -281,12 +222,6 @@ namespace GQI_GetDestinations
             var cells = new[]
             {
                      new GQICell { Value = message },
-                     new GQICell {},
-                     new GQICell {},
-                     new GQICell {},
-                     new GQICell {},
-                     new GQICell {},
-                     new GQICell {},
                      new GQICell {},
                      new GQICell {},
             };
