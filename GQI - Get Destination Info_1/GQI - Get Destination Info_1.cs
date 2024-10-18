@@ -150,6 +150,8 @@ namespace GQI_GetDestinationInfo
                     }
                     else if (_routingMode.Contains("IP"))
                     {
+                        destinationsStatusTable = GetTable(_dms, response, 2100 /*SRT Inputs Status*/);
+                        GetDestinationIPRows(response, rows, destinationsStatusTable);
                         rows.Add(CreateDebugRow($"not implemented feature"));
                     }
                     else
@@ -170,6 +172,45 @@ namespace GQI_GetDestinationInfo
                 {
                     HasNextPage = false,
                 };
+            }
+        }
+
+        private void GetDestinationIPRows(LiteElementInfoEvent response, List<GQIRow> rows, object[][] destinationsStatusTable)
+        {
+            GQICell[] cells;
+            for (int i = 0; i < destinationsStatusTable.Length; i++)
+            {
+                var destinationStatusTableRow = destinationsStatusTable[i];
+                var index = Convert.ToString(destinationStatusTableRow[0]);
+
+                if (index != _sourceId)
+                {
+                    continue;
+                }
+
+                var totalBitrate = Convert.ToDouble(destinationStatusTableRow[1]);
+
+                totalBitrate = Math.Round(totalBitrate, 3);
+                var sTotalBitrate = $"{totalBitrate} Mbps";
+                if (totalBitrate < 0)
+                {
+                    sTotalBitrate = "N/A";
+                }
+
+                cells = new[]
+                {
+                     new GQICell { Value = index },
+                     new GQICell { Value = "N/A" },
+                     new GQICell { Value = totalBitrate, DisplayValue = sTotalBitrate},
+                     new GQICell { Value = 0.0, DisplayValue = "N/A"},
+                };
+
+                var elementID = new ElementID(response.DataMinerID, response.ElementID);
+                var elementMetadata = new ObjectRefMetadata { Object = elementID };
+                var rowMetadata = new GenIfRowMetadata(new[] { elementMetadata });
+                var row = new GQIRow(cells) { Metadata = rowMetadata };
+
+                rows.Add(row);
             }
         }
 

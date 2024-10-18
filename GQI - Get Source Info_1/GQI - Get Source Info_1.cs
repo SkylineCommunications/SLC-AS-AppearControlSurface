@@ -149,7 +149,8 @@ namespace GQI_GetSourceInfo
                     }
                     else if (_routingMode.Contains("IP"))
                     {
-                        rows.Add(CreateDebugRow($"not implemented feature"));
+                        sourcesStatusTable = GetTable(_dms, response, 11800 /*IP Outputs Status*/);
+                        GetSourceIPRows(response, rows, sourcesStatusTable);
                     }
                     else
                     {
@@ -169,6 +170,45 @@ namespace GQI_GetSourceInfo
                 {
                     HasNextPage = false,
                 };
+            }
+        }
+
+        private void GetSourceIPRows(LiteElementInfoEvent response, List<GQIRow> rows, object[][] sourcesStatusTable)
+        {
+            GQICell[] cells;
+            for (int i = 0; i < sourcesStatusTable.Length; i++)
+            {
+                var sourceStatusTableRow = sourcesStatusTable[i];
+                var index = Convert.ToString(sourceStatusTableRow[0]);
+
+                if (index != _sourceId)
+                {
+                    continue;
+                }
+
+                var totalBitrate = Convert.ToDouble(sourceStatusTableRow[2]);
+
+
+                totalBitrate = Math.Round(totalBitrate, 3);
+                var sTotalBitrate = $"{totalBitrate} Mbps";
+                if (totalBitrate < 0)
+                {
+                    sTotalBitrate = "N/A";
+                }
+
+                cells = new[]
+                {
+                     new GQICell { Value = index },
+                     new GQICell { Value = "N/A" },
+                     new GQICell { Value = totalBitrate, DisplayValue = sTotalBitrate},
+                };
+
+                var elementID = new ElementID(response.DataMinerID, response.ElementID);
+                var elementMetadata = new ObjectRefMetadata { Object = elementID };
+                var rowMetadata = new GenIfRowMetadata(new[] { elementMetadata });
+                var row = new GQIRow(cells) { Metadata = rowMetadata };
+
+                rows.Add(row);
             }
         }
 
