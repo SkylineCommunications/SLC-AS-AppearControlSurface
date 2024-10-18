@@ -17,10 +17,6 @@
     <DefineConstants>$(DefineConstants);DCFv1;DBInfo;ALARM_SQUASHING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\SharedClasses\Dialogs.cs" Link="Dialogs.cs" />
-    <Compile Include="..\SharedClasses\SharedMethods.cs" Link="SharedMethods.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Skyline.DataMiner.Core.DataMinerSystem.Automation" Version="1.1.1.13" />
     <PackageReference Include="Skyline.DataMiner.Dev.Automation" Version="10.4.10" />
@@ -31,4 +27,5 @@
       <UserProperties DisLinkedXmlFile="..\IAS - IP Switching Connect.xml" DisProjectType="automationScriptProject" DisLinkId="1" />
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="..\Library\Library.projitems" Label="Shared" />
 </Project>

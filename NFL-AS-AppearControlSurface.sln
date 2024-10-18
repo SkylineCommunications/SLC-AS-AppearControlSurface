@@ -86,12 +86,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{D625
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS - SRT Switching Disconnect_1", "IAS - SRT Switching Disconnect_1\IAS - SRT Switching Disconnect_1.csproj", "{8D8C0062-6028-4C58-9DF5-CB0493BDFC0B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedClasses", "SharedClasses", "{8CC440AE-59D3-47CC-8110-E30C9136EBBE}"
-	ProjectSection(SolutionItems) = preProject
-		SharedClasses\Dialogs.cs = SharedClasses\Dialogs.cs
-		SharedClasses\SharedMethods.cs = SharedClasses\SharedMethods.cs
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IAS - IP Switching Connect", "IAS - IP Switching Connect", "{7D6DB72D-2BF8-4A18-920F-943A36E824D4}"
 	ProjectSection(SolutionItems) = preProject
 		IAS - IP Switching Connect.xml = IAS - IP Switching Connect.xml
@@ -109,6 +103,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{29D21495-DB96-4D0B-AE89-BE18F8222B65}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS - IP Switching Disconnect_1", "IAS - IP Switching Disconnect_1\IAS - IP Switching Disconnect_1.csproj", "{2B7C6867-AFFA-436D-BFCE-3E38E3FAFEF5}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Library", "Library\Library.shproj", "{2397D5B3-5701-4AE8-83CF-D9A4B54758FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -179,7 +175,10 @@ Global
 		SolutionGuid = {4750F61A-EF8F-4EFE-BD0F-FBA09DE690D0}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Library\Library.projitems*{2397d5b3-5701-4ae8-83cf-d9a4b54758fb}*SharedItemsImports = 13
+		Library\Library.projitems*{2b7c6867-affa-436d-bfce-3e38e3fafef5}*SharedItemsImports = 5
 		Library\Library.projitems*{777577f7-805c-422b-8f38-8f862af8a67e}*SharedItemsImports = 5
 		Library\Library.projitems*{8d8c0062-6028-4c58-9df5-cb0493bdfc0b}*SharedItemsImports = 5
+		Library\Library.projitems*{f702865e-6714-4800-ac7a-942150101e9f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

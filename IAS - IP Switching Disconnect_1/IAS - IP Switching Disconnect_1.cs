@@ -49,18 +49,14 @@ dd/mm/2024	1.0.0.1		XXX, Skyline	Initial version
 ****************************************************************************
 */
 
-namespace IAS___IP_Switching_Disconnect_1
+namespace IAS_IP_Switching_Disconnect_1
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Globalization;
-	using System.Text;
-    using Shared.Dialogs;
-    using Shared.SharedMethods;
-    using Skyline.DataMiner.Automation;
-    using Skyline.DataMiner.Core.DataMinerSystem.Automation;
-    using Skyline.DataMiner.Core.DataMinerSystem.Common;
-    using Skyline.DataMiner.Net;
+	using Library.Dialogs;
+	using Library.SharedMethods;
+	using Skyline.DataMiner.Automation;
+	using Skyline.DataMiner.Core.DataMinerSystem.Automation;
+	using Skyline.DataMiner.Core.DataMinerSystem.Common;
 
     /// <summary>
     /// Represents a DataMiner Automation script.
@@ -127,34 +123,32 @@ namespace IAS___IP_Switching_Disconnect_1
 
             var srcDmsElement = dms.GetElement(srcElementId);
             var srcElement = engine.FindElement(srcElementId.AgentId, srcElementId.ElementId);
+            var dstDmsElement = dms.GetElement(dstElementId);
             var dstElement = engine.FindElement(dstElementId.AgentId, dstElementId.ElementId);
 
-            var srcTable = srcDmsElement.GetTable(1600 /*SRT Outputs*/);
-            var dstTable = srcDmsElement.GetTable(1500 /*SRT Outputs*/);
+            var srcTable = srcDmsElement.GetTable(1600 /*IP Outputs*/);
+            var dstTable = dstDmsElement.GetTable(1500 /*IP Inputs*/);
 
             var srcRow = srcTable.GetRow(sourceId);
             var dstRow = dstTable.GetRow(destinationId);
 
             if (srcRow == null)
             {
-                ErrorMessageDialog.ShowMessage(engine, $"Row not found on SRT Outputs table. Row key: {sourceId}");
+                ErrorMessageDialog.ShowMessage(engine, $"Row not found on IP Outputs table. Row key: {sourceId}");
                 return;
             }
-            else if (dstRow == null)
+
+            if (dstRow == null)
             {
-                ErrorMessageDialog.ShowMessage(engine, $"Row not found on SRT Inputs table. Row key: {destinationId}");
+                ErrorMessageDialog.ShowMessage(engine, $"Row not found on IP Inputs table. Row key: {destinationId}");
                 return;
-            }
-            else
-            {
-                // no action
             }
 
             srcElement.SetParameterByPrimaryKey(1643, sourceId, (int)SharedMethods.Status.Disabled);
 
             dstElement.SetParameterByPrimaryKey(1543, destinationId, (int)SharedMethods.Status.Disabled);
-            dstElement.SetParameterByPrimaryKey(1546, sourceId, String.Empty);
-            dstElement.SetParameterByPrimaryKey(1547, sourceId, String.Empty);
+            dstElement.SetParameterByPrimaryKey(1546, destinationId, "-2" /*NA*/);
+            dstElement.SetParameterByPrimaryKey(1547, destinationId, "-2" /*NA*/);
         }
 	}
 }

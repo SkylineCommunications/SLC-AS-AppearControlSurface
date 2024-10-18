@@ -49,30 +49,26 @@ dd/mm/2024	1.0.0.1		XXX, Skyline	Initial version
 ****************************************************************************
 */
 
-namespace IAS___IP_Switching_Connect_1
+namespace IAS_IP_Switching_Connect_1
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Globalization;
-	using System.Text;
-    using Shared.Dialogs;
-    using Shared.SharedMethods;
+    using System;
+    using Library.Dialogs;
+    using Library.SharedMethods;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Common;
-    using Skyline.DataMiner.Net;
 
     /// <summary>
     /// Represents a DataMiner Automation script.
     /// </summary>
-	public class Script
-	{
-		/// <summary>
-		/// The script entry point.
-		/// </summary>
-		/// <param name="engine">Link with SLAutomation process.</param>
-		public void Run(IEngine engine)
-		{
+    public class Script
+    {
+        /// <summary>
+        /// The script entry point.
+        /// </summary>
+        /// <param name="engine">Link with SLAutomation process.</param>
+        public void Run(IEngine engine)
+        {
             // DO NOT REMOVE THIS COMMENTED-OUT CODE OR THE SCRIPT WON'T RUN!
             // DataMiner evaluates if the script needs to launch in interactive mode.
             // This is determined by a simple string search looking for "engine.ShowUI" in the source code.
@@ -82,37 +78,37 @@ namespace IAS___IP_Switching_Connect_1
 
             try
             {
-				RunSafe(engine);
-			}
-			catch (ScriptAbortException)
-			{
-				// Catch normal abort exceptions (engine.ExitFail or engine.ExitSuccess)
-				throw; // Comment if it should be treated as a normal exit of the script.
-			}
-			catch (ScriptForceAbortException)
-			{
-				// Catch forced abort exceptions, caused via external maintenance messages.
-				throw;
-			}
-			catch (ScriptTimeoutException)
-			{
-				// Catch timeout exceptions for when a script has been running for too long.
-				throw;
-			}
-			catch (InteractiveUserDetachedException)
-			{
-				// Catch a user detaching from the interactive script by closing the window.
-				// Only applicable for interactive scripts, can be removed for non-interactive scripts.
-				throw;
-			}
-			catch (Exception e)
-			{
-				engine.ExitFail("Run|Something went wrong: " + e);
-			}
-		}
+                RunSafe(engine);
+            }
+            catch (ScriptAbortException)
+            {
+                // Catch normal abort exceptions (engine.ExitFail or engine.ExitSuccess)
+                throw; // Comment if it should be treated as a normal exit of the script.
+            }
+            catch (ScriptForceAbortException)
+            {
+                // Catch forced abort exceptions, caused via external maintenance messages.
+                throw;
+            }
+            catch (ScriptTimeoutException)
+            {
+                // Catch timeout exceptions for when a script has been running for too long.
+                throw;
+            }
+            catch (InteractiveUserDetachedException)
+            {
+                // Catch a user detaching from the interactive script by closing the window.
+                // Only applicable for interactive scripts, can be removed for non-interactive scripts.
+                throw;
+            }
+            catch (Exception e)
+            {
+                engine.ExitFail("Run|Something went wrong: " + e);
+            }
+        }
 
-		private void RunSafe(IEngine engine)
-		{
+        private void RunSafe(IEngine engine)
+        {
             var dms = engine.GetDms();
 
             var sourceId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("IP Source").Value);
@@ -148,14 +144,11 @@ namespace IAS___IP_Switching_Connect_1
                 ErrorMessageDialog.ShowMessage(engine, $"Row not found on IP Outputs table. Row key: {sourceId}");
                 return;
             }
-            else if (dstRow == null)
+
+            if (dstRow == null)
             {
                 ErrorMessageDialog.ShowMessage(engine, $"Row not found on IP Inputs table. Row key: {destinationId}");
                 return;
-            }
-            else
-            {
-                // no action
             }
 
             var srcDisabled = Convert.ToInt32(srcRow[2 /*Status*/]) == (int)SharedMethods.Status.Disabled;
@@ -164,8 +157,8 @@ namespace IAS___IP_Switching_Connect_1
             var srcIpAddress = Convert.ToString(srcRow[5 /*Single Destination IP*/]);
             var srcPort = Convert.ToString(srcRow[6 /*Single Destination Port*/]);
 
-            dstElement.SetParameterByPrimaryKey(1546, sourceId, srcIpAddress);
-            dstElement.SetParameterByPrimaryKey(1547, sourceId, srcPort);
+            dstElement.SetParameterByPrimaryKey(1546, destinationId, srcIpAddress);
+            dstElement.SetParameterByPrimaryKey(1547, destinationId, srcPort);
 
             if (srcDisabled)
             {
@@ -177,5 +170,5 @@ namespace IAS___IP_Switching_Connect_1
                 dstElement.SetParameterByPrimaryKey(1543, destinationId, (int)SharedMethods.Status.Enabled);
             }
         }
-	}
+    }
 }
