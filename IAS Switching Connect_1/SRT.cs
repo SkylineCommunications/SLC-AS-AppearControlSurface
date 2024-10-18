@@ -1,70 +1,25 @@
-/*
-****************************************************************************
-*  Copyright (c) 2024,  Skyline Communications NV  All Rights Reserved.    *
-****************************************************************************
-
-By using this script, you expressly agree with the usage terms and
-conditions set out below.
-This script and all related materials are protected by copyrights and
-other intellectual property rights that exclusively belong
-to Skyline Communications.
-
-A user license granted for this script is strictly for personal use only.
-This script may not be used in any way by anyone without the prior
-written consent of Skyline Communications. Any sublicensing of this
-script is forbidden.
-
-Any modifications to this script by the user are only allowed for
-personal use and within the intended purpose of the script,
-and will remain the sole responsibility of the user.
-Skyline Communications will not be responsible for any damages or
-malfunctions whatsoever of the script resulting from a modification
-or adaptation by the user.
-
-The content of this script is confidential information.
-The user hereby agrees to keep this confidential information strictly
-secret and confidential and not to disclose or reveal it, in whole
-or in part, directly or indirectly to any person, entity, organization
-or administration without the prior written consent of
-Skyline Communications.
-
-Any inquiries can be addressed to:
-
-	Skyline Communications NV
-	Ambachtenstraat 33
-	B-8870 Izegem
-	Belgium
-	Tel.	: +32 51 31 35 69
-	Fax.	: +32 51 31 01 29
-	E-mail	: info@skyline.be
-	Web		: www.skyline.be
-	Contact	: Ben Vandenberghe
-
-****************************************************************************
-Revision History:
-
-DATE		VERSION		AUTHOR			COMMENTS
-
-dd/mm/2024	1.0.0.1		XXX, Skyline	Initial version
-****************************************************************************
-*/
-
-namespace IAS_SRT_Switching_Connect_1
+﻿namespace IAS_Switching_Connect_1
 {
-	using System;
-	using System.Linq;
-	using Shared.Dialogs;
-	using Shared.SharedMethods;
-	using Skyline.DataMiner.Automation;
-	using Skyline.DataMiner.Core.DataMinerSystem.Automation;
-	using Skyline.DataMiner.Core.DataMinerSystem.Common;
+    using System;
+    using System.Linq;
+    using Library.Dialogs;
+    using Library.SharedMethods;
+    using Skyline.DataMiner.Automation;
+    using Skyline.DataMiner.Core.DataMinerSystem.Automation;
+    using Skyline.DataMiner.Core.DataMinerSystem.Common;
 
-    /// <summary>
-    /// Represents a DataMiner Automation script.
-    /// </summary>
-	public class Script
-	{
-        private IEngine engine;
+    internal class SRT
+    {
+        private const int InputsTable = 14000;
+        private const int OutputsTable = 12000;
+        private const int IpInterfacesTable = 2000;
+
+        private readonly string sourceId;
+        private readonly string destinationId;
+        private readonly string sourceElement;
+        private readonly string destinationElement;
+        private readonly IEngine engine;
+
         private IDmsElement srcDmsElement;
         private IDmsElement dstDmsElement;
         private Element srcElement;
@@ -72,59 +27,19 @@ namespace IAS_SRT_Switching_Connect_1
         private IDmsTable srcTable;
         private IDmsTable dstTable;
 
-        /// <summary>
-        /// The script entry point.
-        /// </summary>
-        /// <param name="engine">Link with SLAutomation process.</param>
-        public void Run(IEngine engine)
-		{
-            // DO NOT REMOVE THIS COMMENTED-OUT CODE OR THE SCRIPT WON'T RUN!
-            // DataMiner evaluates if the script needs to launch in interactive mode.
-            // This is determined by a simple string search looking for "engine.ShowUI" in the source code.
-            // However, because of the toolkit NuGet package, this string cannot be found here.
-            // So this comment is here as a workaround.
-            //// engine.ShowUI();
-
-            try
-            {
-				RunSafe(engine);
-			}
-			catch (ScriptAbortException)
-			{
-				// Catch normal abort exceptions (engine.ExitFail or engine.ExitSuccess)
-				throw; // Comment if it should be treated as a normal exit of the script.
-			}
-			catch (ScriptForceAbortException)
-			{
-				// Catch forced abort exceptions, caused via external maintenance messages.
-				throw;
-			}
-			catch (ScriptTimeoutException)
-			{
-				// Catch timeout exceptions for when a script has been running for too long.
-				throw;
-			}
-			catch (InteractiveUserDetachedException)
-			{
-				// Catch a user detaching from the interactive script by closing the window.
-				// Only applicable for interactive scripts, can be removed for non-interactive scripts.
-				throw;
-			}
-			catch (Exception e)
-			{
-				engine.ExitFail("Run|Something went wrong: " + e);
-			}
-		}
-
-        private void RunSafe(IEngine engine)
+        public SRT(IEngine engine, string sourceId, string destinationId, string sourceElement, string destinationElement)
         {
             this.engine = engine;
-
-            var sourceId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("SRT Source").Value);
-            var destinationId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("SRT Destination").Value);
+            this.sourceId = sourceId;
+            this.destinationId = destinationId;
+            this.sourceElement = sourceElement;
+            this.destinationElement = destinationElement;
 
             InitializeGlobalVariables(engine);
+        }
 
+        public void StartConnection()
+        {
             if (!ValidateKeysExists(sourceId, destinationId, srcTable, dstTable))
             {
                 return;
@@ -143,7 +58,7 @@ namespace IAS_SRT_Switching_Connect_1
 
             if (srcSrtMode == dstSrtMode)
             {
-                var message = $"Selected Source and Destination have the same Mode ({Convert.ToString(srcRow[6] /*SRT Mode*/)}). Please select one Caller and one Listener.";
+                var message = $"Selected Source and Destination have the same Mode ({srcSrtMode}). Please select one Caller and one Listener.";
                 ErrorMessageDialog.ShowMessage(engine, message);
                 return;
             }
@@ -204,9 +119,6 @@ namespace IAS_SRT_Switching_Connect_1
         {
             var dms = engine.GetDms();
 
-            var sourceElement = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Source Element").Value);
-            var destinationElement = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Destination Element").Value);
-
             var srcElementSplitted = sourceElement.Split('/');
             var dstElementSplitted = destinationElement.Split('/');
 
@@ -223,8 +135,9 @@ namespace IAS_SRT_Switching_Connect_1
             dstDmsElement = dms.GetElement(dstElementId);
             srcElement = engine.FindElement(srcElementId.AgentId, srcElementId.ElementId);
             dstElement = engine.FindElement(dstElementId.AgentId, dstElementId.ElementId);
-            srcTable = srcDmsElement.GetTable(12000 /*SRT Outputs*/);
-            dstTable = dstDmsElement.GetTable(14000 /*SRT Inputs*/);
+
+            srcTable = srcDmsElement.GetTable(OutputsTable);
+            dstTable = dstDmsElement.GetTable(InputsTable);
         }
 
         private bool ValidateKeysExists(string sourceId, string destinationId, IDmsTable srcTable, IDmsTable dstTable)
@@ -269,7 +182,7 @@ namespace IAS_SRT_Switching_Connect_1
             var srcSlot = Convert.ToInt32(srcRow[1]);
             var srcInterfaceName = Convert.ToString(srcRow[29]);
 
-            var ipInterfacesTableData = dmsElement.GetTable(2000 /*IP Interfaces*/).GetData();
+            var ipInterfacesTableData = dmsElement.GetTable(IpInterfacesTable).GetData();
             foreach (var interfaceRow in ipInterfacesTableData.Values)
             {
                 var interfaceSlot = Convert.ToInt32(interfaceRow[10]);

@@ -5,7 +5,7 @@
 	<Type>Automation</Type>
 	<Author>SKYLINE2\GermanBS</Author>
 	<CheckSets>FALSE</CheckSets>
-	<Folder></Folder>
+	<Folder>Appear X/NFL/IAS</Folder>
 
 	<Protocols>
 	</Protocols>
@@ -14,22 +14,22 @@
 	</Memory>
 
 	<Parameters>
-		<ScriptParameter id="1" type="string" values="">
+		<ScriptParameter id="10" type="string" values="">
 			<Description>SRT Source</Description>
 		</ScriptParameter>
-		<ScriptParameter id="2" type="string" values="">
+		<ScriptParameter id="11" type="string" values="">
 			<Description>Source Element</Description>
 		</ScriptParameter>
-		<ScriptParameter id="3" type="string" values="">
+		<ScriptParameter id="12" type="string" values="">
 			<Description>SRT Destination</Description>
 		</ScriptParameter>
-		<ScriptParameter id="4" type="string" values="">
+		<ScriptParameter id="13" type="string" values="">
 			<Description>Destination Element</Description>
 		</ScriptParameter>
 	</Parameters>
 
 	<Script>
-		<Exe id="10" type="csharp">
+		<Exe id="1" type="csharp">
 			<Value><![CDATA[[Project:IAS - SRT Switching Disconnect_1]]]></Value>
 			<!--<Param type="debug">true</Param>-->
 			<Message></Message>

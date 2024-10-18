@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <DMSScript options="272" xmlns="http://www.skyline.be/automation">
-	<Name>IAS - SRT Switching Connect</Name>
+	<Name>IAS Switching Connect</Name>
 	<Description></Description>
 	<Type>Automation</Type>
 	<Author>SKYLINE2\GermanBS</Author>
 	<CheckSets>FALSE</CheckSets>
-	<Folder>Appear X/NFL/IAS</Folder>
+	<Folder></Folder>
 
 	<Protocols>
 	</Protocols>
@@ -15,22 +15,25 @@
 
 	<Parameters>
 		<ScriptParameter id="10" type="string" values="">
-			<Description>SRT Source</Description>
+			<Description>Type</Description>
 		</ScriptParameter>
 		<ScriptParameter id="11" type="string" values="">
-			<Description>Source Element</Description>
+			<Description>Source ID</Description>
 		</ScriptParameter>
 		<ScriptParameter id="12" type="string" values="">
-			<Description>SRT Destination</Description>
+			<Description>Source Element</Description>
 		</ScriptParameter>
 		<ScriptParameter id="13" type="string" values="">
+			<Description>DestinationID</Description>
+		</ScriptParameter>
+		<ScriptParameter id="14" type="string" values="">
 			<Description>Destination Element</Description>
 		</ScriptParameter>
 	</Parameters>
 
 	<Script>
 		<Exe id="1" type="csharp">
-			<Value><![CDATA[[Project:IAS - SRT Switching Connect_1]]]></Value>
+			<Value><![CDATA[[Project:IAS Switching Connect_1]]]></Value>
 			<!--<Param type="debug">true</Param>-->
 			<Message></Message>
 		</Exe>
