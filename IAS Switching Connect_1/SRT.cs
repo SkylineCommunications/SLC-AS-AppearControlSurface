@@ -67,10 +67,12 @@
                 return;
             }
 
-            if (srcSrtMode == "Caller")
+            if (srcSrtMode == "CALLER")
             {
                 var listenerCardIp = GetIpAddress(dstDmsElement, dstRow);
-                var listenerPort = Convert.ToInt32(dstRow[10]);
+                var listenerPort = Convert.ToInt32(dstRow[11]);
+                engine.Log($"listenerCardIp: {listenerCardIp}");
+                engine.Log($"listenerPort: {listenerPort}");
 
                 if (String.IsNullOrWhiteSpace(listenerCardIp))
                 {
@@ -80,12 +82,14 @@
 
                 // Caller Sets (IP Address and Port)
                 srcElement.SetParameterByPrimaryKey(12058, sourceId, listenerCardIp);
-                srcElement.SetParameterByPrimaryKey(14062, sourceId, listenerPort);
+                srcElement.SetParameterByPrimaryKey(12059, sourceId, listenerPort);
             }
             else
             {
                 var listenerCardIp = GetIpAddress(srcDmsElement, srcRow);
                 var listenerPort = Convert.ToInt32(srcRow[10]);
+                engine.Log($"listenerCardIp: {listenerCardIp}");
+                engine.Log($"listenerPort: {listenerPort}");
 
                 if (String.IsNullOrWhiteSpace(listenerCardIp))
                 {
@@ -101,6 +105,8 @@
             var srcStatus = Convert.ToInt32(srcRow[3 /*Status*/]);
             var dstStatus = Convert.ToInt32(dstRow[3 /*Status*/]);
             EnableRows(sourceId, destinationId, srcStatus, dstStatus);
+
+            engine.Log("End Connection");
         }
 
         private void EnableRows(string sourceId, string destinationId, int srcStatus, int dstStatus)
@@ -181,15 +187,17 @@
             return true;
         }
 
-        private string GetIpAddress(IDmsElement dmsElement, object[] srcRow)
+        private string GetIpAddress(IDmsElement dmsElement, object[] row)
         {
-            var srcSlot = Convert.ToInt32(srcRow[1]);
-            var srcInterfaceName = Convert.ToString(srcRow[29]);
+            var srcSlot = Convert.ToInt32(row[1]);
+            var srcInterfaceName = Convert.ToString(row[28]);
+            engine.Log($"srcSlot: {srcSlot}");
+            engine.Log($"srcInterfaceName: {srcInterfaceName}");
 
             var ipInterfacesTableData = dmsElement.GetTable(IpInterfacesTable).GetData();
             foreach (var interfaceRow in ipInterfacesTableData.Values)
             {
-                var interfaceSlot = Convert.ToInt32(interfaceRow[10]);
+                var interfaceSlot = Convert.ToInt32(interfaceRow[11]);
                 var interfaceName = Convert.ToString(interfaceRow[3]);
 
                 if (interfaceSlot == srcSlot && interfaceName == srcInterfaceName)

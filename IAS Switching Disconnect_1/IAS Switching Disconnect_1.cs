@@ -88,8 +88,15 @@ namespace IAS_Switching_Disconnect_1
         /// <param name="engine">Link with SLAutomation process.</param>
         public void Run(IEngine engine)
 		{
-			try
-			{
+            // DO NOT REMOVE THIS COMMENTED-OUT CODE OR THE SCRIPT WON'T RUN!
+            // DataMiner evaluates if the script needs to launch in interactive mode.
+            // This is determined by a simple string search looking for "engine.ShowUI" in the source code.
+            // However, because of the toolkit NuGet package, this string cannot be found here.
+            // So this comment is here as a workaround.
+            //// engine.ShowUI();
+
+            try
+            {
 				RunSafe(engine);
 			}
 			catch (ScriptAbortException)
@@ -206,9 +213,11 @@ namespace IAS_Switching_Disconnect_1
 
         private void StartSRTDisconnect(IEngine engine)
         {
+            engine.Log("Start SRT Disconnect");
             var srcTable = srcDmsElement.GetTable(12000 /*SRT Outputs*/);
-            var dstTable = srcDmsElement.GetTable(14000 /*SRT Outputs*/);
+            var dstTable = dstDmsElement.GetTable(14000 /*SRT Inputs*/);
 
+            engine.Log($"ValidateKeysExists: {ValidateKeysExists(engine, srcTable, dstTable)}");
             if (!ValidateKeysExists(engine, srcTable, dstTable))
             {
                 return;
@@ -217,11 +226,13 @@ namespace IAS_Switching_Disconnect_1
             var srcRow = srcTable.GetRow(sourceId);
             var dstRow = dstTable.GetRow(destinationId);
 
+            engine.Log($"ValidateRowExist: {ValidateRowExist(engine, srcRow, dstRow)}");
             if (!ValidateRowExist(engine, srcRow, dstRow))
             {
                 return;
             }
 
+            engine.Log($"SRT Mode: {Convert.ToString(srcRow[6] /*SRT Mode*/)}");
             if (Convert.ToString(srcRow[6] /*SRT Mode*/) == "CALLER")
             {
                 srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)Status.Disabled);
@@ -230,6 +241,8 @@ namespace IAS_Switching_Disconnect_1
             {
                 dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)Status.Disabled);
             }
+
+            engine.Log("End SRT Disconnect");
         }
 
         private bool ValidateKeysExists(IEngine engine, IDmsTable srcTable, IDmsTable dstTable)
