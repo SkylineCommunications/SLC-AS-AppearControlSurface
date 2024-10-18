@@ -104,8 +104,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{29D2
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS - IP Switching Disconnect_1", "IAS - IP Switching Disconnect_1\IAS - IP Switching Disconnect_1.csproj", "{2B7C6867-AFFA-436D-BFCE-3E38E3FAFEF5}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Library", "Library\Library.shproj", "{2397D5B3-5701-4AE8-83CF-D9A4B54758FB}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IAS Switching Connect", "IAS Switching Connect", "{5C9DA4D0-BE67-4A29-A4C9-9A047869433D}"
 	ProjectSection(SolutionItems) = preProject
 		IAS Switching Connect.xml = IAS Switching Connect.xml
@@ -114,6 +112,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{86E52D1B-BFF4-4F5B-9874-184818EB4F49}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS Switching Connect_1", "IAS Switching Connect_1\IAS Switching Connect_1.csproj", "{69118038-BF0E-470F-9F34-492B9E119D7B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IAS Switching Disconnect", "IAS Switching Disconnect", "{283B5C6F-E0C8-49CF-A88C-112EB7AB5D45}"
+	ProjectSection(SolutionItems) = preProject
+		IAS Switching Disconnect.xml = IAS Switching Disconnect.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{FC6B4D7B-01B2-47BC-BFCF-BC73D43B664C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IAS Switching Disconnect_1", "IAS Switching Disconnect_1\IAS Switching Disconnect_1.csproj", "{9D7B6FF4-CBA7-40E8-9827-ACDB10246664}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +160,10 @@ Global
 		{69118038-BF0E-470F-9F34-492B9E119D7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69118038-BF0E-470F-9F34-492B9E119D7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69118038-BF0E-470F-9F34-492B9E119D7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D7B6FF4-CBA7-40E8-9827-ACDB10246664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D7B6FF4-CBA7-40E8-9827-ACDB10246664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D7B6FF4-CBA7-40E8-9827-ACDB10246664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D7B6FF4-CBA7-40E8-9827-ACDB10246664}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -186,16 +197,16 @@ Global
 		{5C9DA4D0-BE67-4A29-A4C9-9A047869433D} = {5A1AFB50-329C-4E87-A670-DCFC323C4755}
 		{86E52D1B-BFF4-4F5B-9874-184818EB4F49} = {5C9DA4D0-BE67-4A29-A4C9-9A047869433D}
 		{69118038-BF0E-470F-9F34-492B9E119D7B} = {86E52D1B-BFF4-4F5B-9874-184818EB4F49}
+		{283B5C6F-E0C8-49CF-A88C-112EB7AB5D45} = {7162577B-2E55-43E2-A472-5E6109D3FCD0}
+		{FC6B4D7B-01B2-47BC-BFCF-BC73D43B664C} = {283B5C6F-E0C8-49CF-A88C-112EB7AB5D45}
+		{9D7B6FF4-CBA7-40E8-9827-ACDB10246664} = {FC6B4D7B-01B2-47BC-BFCF-BC73D43B664C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4750F61A-EF8F-4EFE-BD0F-FBA09DE690D0}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Library\Library.projitems*{2397d5b3-5701-4ae8-83cf-d9a4b54758fb}*SharedItemsImports = 13
-		Library\Library.projitems*{2b7c6867-affa-436d-bfce-3e38e3fafef5}*SharedItemsImports = 5
 		Library\Library.projitems*{69118038-bf0e-470f-9f34-492b9e119d7b}*SharedItemsImports = 5
 		Library\Library.projitems*{777577f7-805c-422b-8f38-8f862af8a67e}*SharedItemsImports = 5
 		Library\Library.projitems*{8d8c0062-6028-4c58-9df5-cb0493bdfc0b}*SharedItemsImports = 5
-		Library\Library.projitems*{f702865e-6714-4800-ac7a-942150101e9f}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

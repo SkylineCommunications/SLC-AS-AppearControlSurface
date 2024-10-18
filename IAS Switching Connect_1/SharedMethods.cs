@@ -1,4 +1,4 @@
-﻿namespace Shared.SharedMethods
+﻿namespace Library.SharedMethods
 {
     using System.Collections.Generic;
     using Newtonsoft.Json;

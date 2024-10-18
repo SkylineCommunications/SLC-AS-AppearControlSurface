@@ -27,5 +27,4 @@
       <UserProperties DisLinkedXmlFile="..\IAS - IP Switching Disconnect.xml" DisProjectType="automationScriptProject" DisLinkId="1" />
     </VisualStudio>
   </ProjectExtensions>
-  <Import Project="..\Library\Library.projitems" Label="Shared" />
 </Project>

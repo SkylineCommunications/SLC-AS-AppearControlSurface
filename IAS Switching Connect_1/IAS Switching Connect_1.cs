@@ -52,22 +52,30 @@ dd/mm/2024	1.0.0.1		XXX, Skyline	Initial version
 namespace IAS_Switching_Connect_1
 {
 	using System;
-	using Library.SharedMethods;
+	using System.Collections.Generic;
+	using Newtonsoft.Json;
 	using Skyline.DataMiner.Automation;
 
-	/// <summary>
-	/// Represents a DataMiner Automation script.
-	/// </summary>
+    /// <summary>
+    /// Represents a DataMiner Automation script.
+    /// </summary>
 	public class Script
-	{
-		/// <summary>
-		/// The script entry point.
-		/// </summary>
-		/// <param name="engine">Link with SLAutomation process.</param>
+    {
+        /// <summary>
+        /// The script entry point.
+        /// </summary>
+        /// <param name="engine">Link with SLAutomation process.</param>
 		public static void Run(IEngine engine)
 		{
-			try
-			{
+            // DO NOT REMOVE THIS COMMENTED-OUT CODE OR THE SCRIPT WON'T RUN!
+            // DataMiner evaluates if the script needs to launch in interactive mode.
+            // This is determined by a simple string search looking for "engine.ShowUI" in the source code.
+            // However, because of the toolkit NuGet package, this string cannot be found here.
+            // So this comment is here as a workaround.
+            //// engine.ShowUI();
+
+            try
+            {
 				RunSafe(engine);
 			}
 			catch (ScriptAbortException)
@@ -99,11 +107,11 @@ namespace IAS_Switching_Connect_1
 
 		private static void RunSafe(IEngine engine)
 		{
-			var type = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Type").Value);
-			var sourceId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Source ID").Value);
-			var sourceElement = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Source Element").Value);
-			var destinationId = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Destination ID").Value);
-			var destinationElement = SharedMethods.GetOneDeserializedValue(engine.GetScriptParam("Destination Element").Value);
+			var type = GetOneDeserializedValue(engine.GetScriptParam("Type").Value);
+			var sourceId = GetOneDeserializedValue(engine.GetScriptParam("Source ID").Value);
+			var sourceElement = GetOneDeserializedValue(engine.GetScriptParam("Source Element").Value);
+			var destinationId = GetOneDeserializedValue(engine.GetScriptParam("Destination ID").Value);
+			var destinationElement = GetOneDeserializedValue(engine.GetScriptParam("Destination Element").Value);
 
 			if (String.IsNullOrWhiteSpace(type))
 			{
@@ -121,5 +129,17 @@ namespace IAS_Switching_Connect_1
                 ip.StartConnection();
             }
 		}
-	}
+
+		private static string GetOneDeserializedValue(string scriptParam)
+        {
+            if (scriptParam.Contains("[") && scriptParam.Contains("]"))
+            {
+                return JsonConvert.DeserializeObject<List<string>>(scriptParam)[0];
+            }
+            else
+            {
+                return scriptParam;
+            }
+        }
+    }
 }

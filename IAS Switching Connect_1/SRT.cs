@@ -2,8 +2,6 @@
 {
     using System;
     using System.Linq;
-    using Library.Dialogs;
-    using Library.SharedMethods;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Common;
@@ -38,9 +36,15 @@
             InitializeGlobalVariables(engine);
         }
 
+        private enum Status
+        {
+            Disabled = 0,
+            Enabled = 1,
+        }
+
         public void StartConnection()
         {
-            if (!ValidateKeysExists(sourceId, destinationId, srcTable, dstTable))
+            if (!ValidateKeysExists())
             {
                 return;
             }
@@ -48,7 +52,7 @@
             var srcRow = srcTable.GetRow(sourceId);
             var dstRow = dstTable.GetRow(destinationId);
 
-            if (!ValidateRowExist(sourceId, destinationId, srcRow, dstRow))
+            if (!ValidateRowExist(srcRow, dstRow))
             {
                 return;
             }
@@ -101,17 +105,17 @@
 
         private void EnableRows(string sourceId, string destinationId, int srcStatus, int dstStatus)
         {
-            var srcDisabled = srcStatus == (int)SharedMethods.Status.Disabled;
-            var dstDisabled = dstStatus == (int)SharedMethods.Status.Disabled;
+            var srcDisabled = srcStatus == (int)Status.Disabled;
+            var dstDisabled = dstStatus == (int)Status.Disabled;
 
             if (srcDisabled)
             {
-                srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)SharedMethods.Status.Enabled);
+                srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)Status.Enabled);
             }
 
             if (dstDisabled)
             {
-                dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)SharedMethods.Status.Enabled);
+                dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)Status.Enabled);
             }
         }
 
@@ -140,7 +144,7 @@
             dstTable = dstDmsElement.GetTable(InputsTable);
         }
 
-        private bool ValidateKeysExists(string sourceId, string destinationId, IDmsTable srcTable, IDmsTable dstTable)
+        private bool ValidateKeysExists()
         {
             var srcTableKeys = srcTable.GetPrimaryKeys();
             var dstTableKeys = dstTable.GetPrimaryKeys();
@@ -160,7 +164,7 @@
             return true;
         }
 
-        private bool ValidateRowExist(string sourceId, string destinationId, object[] srcRow, object[] dstRow)
+        private bool ValidateRowExist(object[] srcRow, object[] dstRow)
         {
             if (srcRow == null)
             {

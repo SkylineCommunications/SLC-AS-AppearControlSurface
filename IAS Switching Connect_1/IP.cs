@@ -1,11 +1,10 @@
 ﻿namespace IAS_Switching_Connect_1
 {
     using System;
-    using Library.Dialogs;
-    using Library.SharedMethods;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Common;
+    using Skyline.DataMiner.Utils.InteractiveAutomationScript;
 
     internal class IP
     {
@@ -34,6 +33,12 @@
             InitializeGlobalVariables(engine);
         }
 
+        private enum Status
+        {
+            Disabled = 0,
+            Enabled = 1,
+        }
+
         public void StartConnection()
         {
             var srcRow = srcTable.GetRow(sourceId);
@@ -51,8 +56,8 @@
                 return;
             }
 
-            var srcDisabled = Convert.ToInt32(srcRow[2 /*Status*/]) == (int)SharedMethods.Status.Disabled;
-            var dstDisabled = Convert.ToInt32(dstRow[2 /*Status*/]) == (int)SharedMethods.Status.Disabled;
+            var srcDisabled = Convert.ToInt32(srcRow[2 /*Status*/]) == (int)Status.Disabled;
+            var dstDisabled = Convert.ToInt32(dstRow[2 /*Status*/]) == (int)Status.Disabled;
 
             var srcIpAddress = Convert.ToString(srcRow[5 /*Single Destination IP*/]);
             var srcPort = Convert.ToString(srcRow[6 /*Single Destination Port*/]);
@@ -62,12 +67,12 @@
 
             if (srcDisabled)
             {
-                srcElement.SetParameterByPrimaryKey(1643, sourceId, (int)SharedMethods.Status.Enabled);
+                srcElement.SetParameterByPrimaryKey(1643, sourceId, (int)Status.Enabled);
             }
 
             if (dstDisabled)
             {
-                dstElement.SetParameterByPrimaryKey(1543, destinationId, (int)SharedMethods.Status.Enabled);
+                dstElement.SetParameterByPrimaryKey(1543, destinationId, (int)Status.Enabled);
             }
         }
 
@@ -94,6 +99,47 @@
 
             srcTable = srcDmsElement.GetTable(OutputsTable);
             dstTable = dstDmsElement.GetTable(InputsTable);
+        }
+    }
+
+    public class ErrorMessageDialog : Dialog
+    {
+        public ErrorMessageDialog(IEngine engine, string message) : base(engine)
+        {
+            // Set title
+            Title = "Error";
+
+            // Init widgets
+            Label = new Label(message);
+
+            // Define layout
+            AddWidget(Label, 0, 0);
+            AddWidget(OkButton, 1, 0);
+        }
+
+        public Button OkButton { get; } = new Button("OK") { Width = 100 };
+
+        private Label Label { get; set; }
+
+        public static void ShowMessage(IEngine engine, string message)
+        {
+            try
+            {
+                var dialog = new ErrorMessageDialog(engine, message);
+
+                dialog.OkButton.Pressed += (sender, args) => engine.ExitSuccess("Close");
+
+                var controller = new InteractiveController(engine);
+                controller.ShowDialog(dialog);
+            }
+            catch (ScriptAbortException)
+            {
+                // ignore abort
+            }
+            catch (Exception e)
+            {
+                engine.ExitFail("Something went wrong: " + e);
+            }
         }
     }
 }
