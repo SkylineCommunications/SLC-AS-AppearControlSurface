@@ -66,6 +66,7 @@ namespace GQI_GetDestinations
     [GQIMetaData(Name = "GQI - Get Destinations")]
     public sealed class GetSource : IGQIDataSource, IGQIOnInit, IGQIInputArguments
     {
+        private readonly GQIStringArgument selectedElementArg = new GQIStringArgument("Selected Source Element Name") { IsRequired = false, DefaultValue = string.Empty };
         private readonly GQIStringArgument routingModeArg = new GQIStringArgument("Routing Mode") { IsRequired = true };
         private readonly GQIStringArgument siteLocationeArg = new GQIStringArgument("Site Location") { IsRequired = false, DefaultValue = string.Empty };
         private readonly GQIStringArgument srtModeArg = new GQIStringArgument("SRT Mode") { IsRequired = false, DefaultValue = string.Empty };
@@ -85,6 +86,7 @@ namespace GQI_GetDestinations
         private string _routingMode;
         private string _siteLocation;
         private string _srtMode;
+        private string _selectedElement;
         private GQIDMS _dms;
         private List<LiteElementInfoEvent> appearTvResponses;
 
@@ -108,12 +110,14 @@ namespace GQI_GetDestinations
                 new GQIStringColumn("Listener Port"),
                 new GQIStringColumn("Element Name"),
                 new GQIStringColumn("Source Connected Label"),
+                new GQIStringColumn("Routing Mode"),
+                new GQIBooleanColumn("Is Selectable"),
             };
         }
 
         public GQIArgument[] GetInputArguments()
         {
-            return new GQIArgument[] { routingModeArg, siteLocationeArg, srtModeArg };
+            return new GQIArgument[] { selectedElementArg, routingModeArg, siteLocationeArg, srtModeArg };
         }
 
         public OnArgumentsProcessedOutputArgs OnArgumentsProcessed(OnArgumentsProcessedInputArgs args)
@@ -121,6 +125,7 @@ namespace GQI_GetDestinations
             args.TryGetArgumentValue(routingModeArg, out _routingMode);
             args.TryGetArgumentValue(siteLocationeArg, out _siteLocation);
             args.TryGetArgumentValue(srtModeArg, out _srtMode);
+            args.TryGetArgumentValue(selectedElementArg, out _selectedElement);
             return new OnArgumentsProcessedOutputArgs();
         }
 
@@ -183,13 +188,16 @@ namespace GQI_GetDestinations
         private void GetDestinationIpRows(LiteElementInfoEvent response, List<GQIRow> rows, object[][] destinationTable)
         {
             GQICell[] cells;
-
+            var possibleSources = appearTvResponses.Where(x => (x.Name != response.Name) && (x.State == ElementState.Active)).ToList();
             for (int i = 0; i < destinationTable.Length; i++)
             {
                 var destinationTableRow = destinationTable[i];
                 var index = Convert.ToString(destinationTableRow[0]);
-                var label = Convert.ToString(destinationTableRow[1 /*label*/]);
+                var label = CheckExceptionValue(destinationTableRow[1 /*label*/]);
                 var intStatus = Convert.ToInt32(destinationTableRow[2 /*Status*/]);
+
+                var singleDestinationAddress = CheckExceptionValue(destinationTableRow[5 /*Single Destination Address*/]);
+                var singleDestinationPort = CheckExceptionValue(destinationTableRow[6 /*Single Destination Port*/]);
 
                 string status;
                 if (!StateDict.TryGetValue(intStatus, out status))
@@ -197,18 +205,32 @@ namespace GQI_GetDestinations
                     status = "N/A";
                 }
 
+                var isSelectable = true;
+                if (_selectedElement == response.Name)
+                {
+                    isSelectable = false;
+                }
+
+                var sourceLabelName = "No Connection";
+                if (status == "Enabled")
+                {
+                    sourceLabelName = FindSourceIPConnection(possibleSources, destinationTableRow);
+                }
+
                 cells = new[]
                 {
                      new GQICell { Value = index },
                      new GQICell { Value = label },
                      new GQICell { Value = status },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
+                     new GQICell { Value = "N/A" },
+                     new GQICell { Value = singleDestinationAddress },
+                     new GQICell { Value = singleDestinationPort},
+                     new GQICell { Value = "N/A" },
+                     new GQICell { Value = "N/A" },
+                     new GQICell { Value = response.Name },
+                     new GQICell { Value = sourceLabelName },
+                     new GQICell { Value = "IP" },
+                     new GQICell { Value = isSelectable},
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -237,13 +259,18 @@ namespace GQI_GetDestinations
                 var pathCallerDestinationPort = CheckExceptionValue(destinationTableRow[10 /*path 1 Caller Destination Port*/]);
                 var pathListenerPort = CheckExceptionValue(destinationTableRow[11 /*path 1 Caller Listener Port*/]);
 
+                bool isSelectable = true;
                 if (_srtMode == "LISTENER" && pathMode == "LISTENER")
                 {
-                    continue;
+                    isSelectable = false;
                 }
                 else if (_srtMode == "CALLER" && pathMode == "CALLER")
                 {
-                    continue;
+                    isSelectable = false;
+                }
+                else if (_selectedElement == response.Name)
+                {
+                    isSelectable = false;
                 }
                 else
                 {
@@ -274,6 +301,8 @@ namespace GQI_GetDestinations
                      new GQICell { Value = pathListenerPort },
                      new GQICell { Value = response.Name},
                      new GQICell { Value = sourceLabelName},
+                     new GQICell { Value = "SRT" },
+                     new GQICell { Value = isSelectable},
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -354,11 +383,55 @@ namespace GQI_GetDestinations
             return "No Connection";
         }
 
+        private string FindSourceIPConnection(List<LiteElementInfoEvent> possibleSources, object[] destinationTableRow)
+        {
+            if (!possibleSources.Any())
+            {
+                return "No Connection";
+            }
+
+            var singleDestinationAddress = CheckExceptionValue(destinationTableRow[5 /*Single Destination Address*/]);
+            var singleDestinationPort = CheckExceptionValue(destinationTableRow[6 /*Single Destination Port*/]);
+
+            if (singleDestinationAddress.Equals("N/A") || singleDestinationPort.Equals("N/A"))
+            {
+                return "No Connection";
+            }
+
+            foreach (var possibleSource in possibleSources)
+            {
+                var sourcesTable = GetTable(_dms, possibleSource, 1600 /*IP Outputs*/);
+
+                for (int i = 0; i < sourcesTable.Length; i++)
+                {
+                    var sourceRow = sourcesTable[i];
+                    var intStatus = Convert.ToInt32(sourceRow[2 /*Status*/]);
+
+                    if (intStatus != 1 /*Enabled*/)
+                    {
+                        continue;
+                    }
+
+                    var sourceRowDestinationAddress = CheckExceptionValue(sourceRow[5 /*Single Destination Address*/]);
+                    var sourceRowDestinationPort = CheckExceptionValue(sourceRow[6 /*Single Destination Port*/]);
+
+                    if ((sourceRowDestinationAddress == singleDestinationAddress) && (sourceRowDestinationPort == singleDestinationPort))
+                    {
+                        return Convert.ToString(sourceRow[1]);
+                    }
+                }
+
+            }
+
+            return "No Connection";
+        }
+
         private GQIRow CreateDebugRow(string message)
         {
             var cells = new[]
             {
                      new GQICell { Value = message },
+                     new GQICell {},
                      new GQICell {},
                      new GQICell {},
                      new GQICell {},

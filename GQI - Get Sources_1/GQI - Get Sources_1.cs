@@ -63,6 +63,7 @@ namespace GQI_GetSources
     [GQIMetaData(Name = "GQI - Get Sources")]
     public sealed class GetSource : IGQIDataSource, IGQIOnInit, IGQIInputArguments
     {
+        private readonly GQIStringArgument selectedElementArg = new GQIStringArgument("Selected Destination Element Name") { IsRequired = false, DefaultValue = string.Empty };
         private readonly GQIStringArgument routingModeArg = new GQIStringArgument("Routing Mode") { IsRequired = true };
         private readonly GQIStringArgument siteLocationeArg = new GQIStringArgument("Site Location") { IsRequired = false, DefaultValue = string.Empty };
         private readonly GQIStringArgument srtModeArg = new GQIStringArgument("SRT Mode") { IsRequired = false, DefaultValue = string.Empty };
@@ -82,6 +83,7 @@ namespace GQI_GetSources
         private string _routingMode;
         private string _siteLocation;
         private string _srtMode;
+        private string _selectedElement;
         private GQIDMS _dms;
 
         public OnInitOutputArgs OnInit(OnInitInputArgs args)
@@ -103,12 +105,14 @@ namespace GQI_GetSources
                 new GQIStringColumn("Path Caller Destination Port"),
                 new GQIStringColumn("Path Listener Port"),
                 new GQIStringColumn("Element Name"),
+                new GQIStringColumn("Routing Mode"),
+                new GQIBooleanColumn("Is Selectable"),
             };
         }
 
         public GQIArgument[] GetInputArguments()
         {
-            return new GQIArgument[] { routingModeArg, siteLocationeArg, srtModeArg };
+            return new GQIArgument[] { selectedElementArg, routingModeArg, siteLocationeArg, srtModeArg };
         }
 
         public OnArgumentsProcessedOutputArgs OnArgumentsProcessed(OnArgumentsProcessedInputArgs args)
@@ -116,6 +120,7 @@ namespace GQI_GetSources
             args.TryGetArgumentValue(routingModeArg, out _routingMode);
             args.TryGetArgumentValue(siteLocationeArg, out _siteLocation);
             args.TryGetArgumentValue(srtModeArg, out _srtMode);
+            args.TryGetArgumentValue(selectedElementArg, out _selectedElement);
             return new OnArgumentsProcessedOutputArgs();
         }
 
@@ -184,8 +189,11 @@ namespace GQI_GetSources
             {
                 var sourceTableRow = sourcesTable[i];
                 var index = Convert.ToString(sourceTableRow[0]);
-                var label = Convert.ToString(sourceTableRow[1 /*label*/]);
+                var label = CheckExceptionValue(sourceTableRow[1 /*label*/]);
                 var intStatus = Convert.ToInt32(sourceTableRow[2 /*Status*/]);
+
+                var singleDestinationAddress = CheckExceptionValue(sourceTableRow[5 /*Single Destination Address*/]);
+                var singleDestinationPort = CheckExceptionValue(sourceTableRow[6 /*Single Destination Port*/]);
 
                 string status;
                 if (!StateDict.TryGetValue(intStatus, out status))
@@ -193,17 +201,25 @@ namespace GQI_GetSources
                     status = "N/A";
                 }
 
+                var isSelectable = true;
+                if (_selectedElement == response.Name)
+                {
+                    isSelectable = false;
+                }
+
                 cells = new[]
                 {
                      new GQICell { Value = index },
                      new GQICell { Value = label },
                      new GQICell { Value = status },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
-                     new GQICell { },
+                     new GQICell { Value = "N/A" },
+                     new GQICell { Value = singleDestinationAddress },
+                     new GQICell { Value = singleDestinationPort},
+                     new GQICell { Value = "N/A" },
+                     new GQICell { Value = "N/A" },
+                     new GQICell { Value = response.Name },
+                     new GQICell { Value = "IP" },
+                     new GQICell { Value = isSelectable},
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -238,13 +254,18 @@ namespace GQI_GetSources
                     status = "N/A";
                 }
 
+                bool isSelectable = true;
                 if (_srtMode == "LISTENER" && pathMode == "LISTENER")
                 {
-                    continue;
+                    isSelectable = false;
                 }
                 else if (_srtMode == "CALLER" && pathMode == "CALLER")
                 {
-                    continue;
+                    isSelectable = false;
+                }
+                else if (_selectedElement == response.Name)
+                {
+                    isSelectable = false;
                 }
                 else
                 {
@@ -262,6 +283,8 @@ namespace GQI_GetSources
                      new GQICell { Value = pathCallerDestinationPort },
                      new GQICell { Value = pathListenerPort },
                      new GQICell { Value = response.Name},
+                     new GQICell { Value = "SRT"},
+                     new GQICell { Value = isSelectable},
                 };
 
                 var elementID = new ElementID(response.DataMinerID, response.ElementID);
@@ -278,6 +301,8 @@ namespace GQI_GetSources
             var cells = new[]
             {
                      new GQICell { Value = message },
+                     new GQICell {},
+                     new GQICell {},
                      new GQICell {},
                      new GQICell {},
                      new GQICell {},
