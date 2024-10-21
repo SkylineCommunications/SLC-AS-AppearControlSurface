@@ -284,7 +284,7 @@ namespace GQI_GetDestinations
                 }
 
                 var sourceLabelName = "No Connection";
-                if (status == "Enabled")
+                if (status == "Enabled" && pathMode == "CALLER")
                 {
                     sourceLabelName = FindSourceConnection(possibleSources, destinationTableRow);
                 }
