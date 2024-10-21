@@ -195,6 +195,12 @@ namespace GQI_GetDestinations
                 var index = Convert.ToString(destinationTableRow[0]);
                 var label = CheckExceptionValue(destinationTableRow[1 /*label*/]);
                 var intStatus = Convert.ToInt32(destinationTableRow[2 /*Status*/]);
+                var type = Convert.ToString(destinationTableRow[3 /*Type*/]);
+
+                if (type == "seamless")
+                {
+                    continue;
+                }
 
                 var singleDestinationAddress = CheckExceptionValue(destinationTableRow[5 /*Single Destination Address*/]);
                 var singleDestinationPort = CheckExceptionValue(destinationTableRow[6 /*Single Destination Port*/]);
@@ -406,7 +412,6 @@ namespace GQI_GetDestinations
                         return Convert.ToString(sourceRow[1]);
                     }
                 }
-
             }
 
             return "No Connection";
