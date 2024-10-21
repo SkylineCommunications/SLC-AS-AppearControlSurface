@@ -1,10 +1,11 @@
 ﻿namespace IAS_Switching_Connect_1
 {
     using System;
+    using System.Diagnostics;
+    using System.Threading;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Common;
-    using Skyline.DataMiner.Utils.InteractiveAutomationScript;
 
     internal class IP
     {
@@ -19,6 +20,7 @@
 
         private Element srcElement;
         private Element dstElement;
+        private IDmsElement dstDmsElement;
         private IDmsTable srcTable;
         private IDmsTable dstTable;
 
@@ -60,10 +62,17 @@
             var dstDisabled = Convert.ToInt32(dstRow[2 /*Status*/]) == (int)Status.Disabled;
 
             var srcIpAddress = Convert.ToString(srcRow[5 /*Single Destination IP*/]);
-            var srcPort = Convert.ToString(srcRow[6 /*Single Destination Port*/]);
+            var srcPort = Convert.ToInt32(srcRow[6 /*Single Destination Port*/]);
 
             dstElement.SetParameterByPrimaryKey(1546, destinationId, srcIpAddress);
+            Thread.Sleep(1000);
             dstElement.SetParameterByPrimaryKey(1547, destinationId, srcPort);
+
+            if (!Retry(ValidateSets, new TimeSpan(0, 1, 0), srcIpAddress, srcPort))
+            {
+                ErrorMessageDialog.ShowMessage(engine, $"IP Address and/or Port were not set on Destination.");
+                return;
+            }
 
             if (srcDisabled)
             {
@@ -93,53 +102,38 @@
             var dstElementId = new DmsElementId(Convert.ToInt32(dstElementSplitted[0]), Convert.ToInt32(dstElementSplitted[1]));
 
             var srcDmsElement = dms.GetElement(srcElementId);
-            var dstDmsElement = dms.GetElement(dstElementId);
+            dstDmsElement = dms.GetElement(dstElementId);
             srcElement = engine.FindElement(srcElementId.AgentId, srcElementId.ElementId);
             dstElement = engine.FindElement(dstElementId.AgentId, dstElementId.ElementId);
 
             srcTable = srcDmsElement.GetTable(OutputsTable);
             dstTable = dstDmsElement.GetTable(InputsTable);
         }
-    }
 
-    public class ErrorMessageDialog : Dialog
-    {
-        public ErrorMessageDialog(IEngine engine, string message) : base(engine)
+        private bool ValidateSets(string ipAddress, int port)
         {
-            // Set title
-            Title = "Error";
-
-            // Init widgets
-            Label = new Label(message);
-
-            // Define layout
-            AddWidget(Label, 0, 0);
-            AddWidget(OkButton, 1, 0);
+            var row = dstDmsElement.GetTable(InputsTable).GetRow(destinationId);
+            return Convert.ToString(row[5]) == ipAddress && Convert.ToInt32(row[6]) == port;
         }
 
-        public Button OkButton { get; } = new Button("OK") { Width = 100 };
-
-        private Label Label { get; set; }
-
-        public static void ShowMessage(IEngine engine, string message)
+        private bool Retry(Func<string, int, bool> func, TimeSpan timeout, string listenerIP, int listenerPort)
         {
-            try
-            {
-                var dialog = new ErrorMessageDialog(engine, message);
+            bool success;
 
-                dialog.OkButton.Pressed += (sender, args) => engine.ExitSuccess("Close");
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
-                var controller = new InteractiveController(engine);
-                controller.ShowDialog(dialog);
-            }
-            catch (ScriptAbortException)
+            do
             {
-                // ignore abort
+                success = func(listenerIP, listenerPort);
+                if (!success)
+                {
+                    Thread.Sleep(3000);
+                }
             }
-            catch (Exception e)
-            {
-                engine.ExitFail("Something went wrong: " + e);
-            }
+            while (!success && sw.Elapsed <= timeout);
+
+            return success;
         }
     }
 }

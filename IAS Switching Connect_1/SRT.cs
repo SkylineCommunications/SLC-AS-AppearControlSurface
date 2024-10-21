@@ -1,7 +1,9 @@
 ﻿namespace IAS_Switching_Connect_1
 {
     using System;
+    using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Automation;
     using Skyline.DataMiner.Core.DataMinerSystem.Common;
@@ -69,10 +71,8 @@
 
             if (srcSrtMode == "CALLER")
             {
-                var listenerCardIp = GetIpAddress(dstDmsElement, dstRow);
+                var listenerCardIp = GetIpAddress(dstDmsElement, dstRow, false);
                 var listenerPort = Convert.ToInt32(dstRow[11]);
-                engine.Log($"listenerCardIp: {listenerCardIp}");
-                engine.Log($"listenerPort: {listenerPort}");
 
                 if (String.IsNullOrWhiteSpace(listenerCardIp))
                 {
@@ -82,14 +82,22 @@
 
                 // Caller Sets (IP Address and Port)
                 srcElement.SetParameterByPrimaryKey(12058, sourceId, listenerCardIp);
+                Thread.Sleep(2000);
                 srcElement.SetParameterByPrimaryKey(12059, sourceId, listenerPort);
+                Thread.Sleep(2000);
+                srcElement.SetParameterByPrimaryKey(12060, sourceId, listenerPort);
+                Thread.Sleep(2000);
+
+                if (!Retry(ValidateSets, new TimeSpan(0, 1, 0), listenerCardIp, listenerPort, true))
+                {
+                    ErrorMessageDialog.ShowMessage(engine, $"Listener IP Address and/or Port were not set on Caller.");
+                    return;
+                }
             }
             else
             {
-                var listenerCardIp = GetIpAddress(srcDmsElement, srcRow);
+                var listenerCardIp = GetIpAddress(srcDmsElement, srcRow, true);
                 var listenerPort = Convert.ToInt32(srcRow[10]);
-                engine.Log($"listenerCardIp: {listenerCardIp}");
-                engine.Log($"listenerPort: {listenerPort}");
 
                 if (String.IsNullOrWhiteSpace(listenerCardIp))
                 {
@@ -99,14 +107,45 @@
 
                 // Caller Sets (IP Address and Port)
                 dstElement.SetParameterByPrimaryKey(14059, destinationId, listenerCardIp);
+                Thread.Sleep(2000);
                 dstElement.SetParameterByPrimaryKey(14060, destinationId, listenerPort);
+                Thread.Sleep(2000);
+                dstElement.SetParameterByPrimaryKey(14061, destinationId, listenerPort);
+                Thread.Sleep(2000);
+
+                if (!Retry(ValidateSets, new TimeSpan(0, 1, 0), listenerCardIp, listenerPort, false))
+                {
+                    ErrorMessageDialog.ShowMessage(engine, $"Listener IP Address and/or Port were not set on Caller.");
+                    return;
+                }
             }
 
             var srcStatus = Convert.ToInt32(srcRow[3 /*Status*/]);
             var dstStatus = Convert.ToInt32(dstRow[3 /*Status*/]);
             EnableRows(sourceId, destinationId, srcStatus, dstStatus);
+        }
 
-            engine.Log("End Connection");
+        private bool ValidateSets(string listenerCardIp, int listenerPort, bool callerOnSourceSide)
+        {
+            if (callerOnSourceSide)
+            {
+                var row = srcDmsElement.GetTable(OutputsTable).GetRow(sourceId);
+
+                return Convert.ToString(row[7]) == listenerCardIp && Convert.ToInt32(row[8]) == listenerPort && Convert.ToInt32(row[9]) == listenerPort;
+            }
+            else
+            {
+                var row = dstDmsElement.GetTable(InputsTable).GetRow(destinationId);
+                return Convert.ToString(row[8]) == listenerCardIp && Convert.ToInt32(row[9]) == listenerPort && Convert.ToInt32(row[10]) == listenerPort;
+            }
+        }
+
+        private bool ValidateStatus()
+        {
+            var srcRow = srcDmsElement.GetTable(OutputsTable).GetRow(sourceId);
+            var dstRow = dstDmsElement.GetTable(InputsTable).GetRow(destinationId);
+
+            return Convert.ToInt32(srcRow[3]) == (int)Status.Enabled && Convert.ToInt32(dstRow[3]) == (int)Status.Enabled;
         }
 
         private void EnableRows(string sourceId, string destinationId, int srcStatus, int dstStatus)
@@ -117,11 +156,18 @@
             if (srcDisabled)
             {
                 srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)Status.Enabled);
+                Thread.Sleep(2000);
             }
 
             if (dstDisabled)
             {
                 dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)Status.Enabled);
+                Thread.Sleep(2000);
+            }
+
+            if (!Retry(ValidateStatus, new TimeSpan(0, 1, 0)))
+            {
+                ErrorMessageDialog.ShowMessage(engine, $"Source/Destination not enabled.");
             }
         }
 
@@ -187,12 +233,10 @@
             return true;
         }
 
-        private string GetIpAddress(IDmsElement dmsElement, object[] row)
+        private string GetIpAddress(IDmsElement dmsElement, object[] row, bool listenerOnSourceSide)
         {
             var srcSlot = Convert.ToInt32(row[1]);
-            var srcInterfaceName = Convert.ToString(row[28]);
-            engine.Log($"srcSlot: {srcSlot}");
-            engine.Log($"srcInterfaceName: {srcInterfaceName}");
+            var srcInterfaceName = listenerOnSourceSide ? Convert.ToString(row[29]) : Convert.ToString(row[28]);
 
             var ipInterfacesTableData = dmsElement.GetTable(IpInterfacesTable).GetData();
             foreach (var interfaceRow in ipInterfacesTableData.Values)
@@ -207,6 +251,46 @@
             }
 
             return String.Empty;
+        }
+
+        private bool Retry(Func<string, int, bool, bool> func, TimeSpan timeout, string listenerIP, int listenerPort, bool listenerOnSourceSide)
+        {
+            bool success;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            do
+            {
+                success = func(listenerIP, listenerPort, listenerOnSourceSide);
+                if (!success)
+                {
+                    Thread.Sleep(3000);
+                }
+            }
+            while (!success && sw.Elapsed <= timeout);
+
+            return success;
+        }
+
+        private bool Retry(Func<bool> func, TimeSpan timeout)
+        {
+            bool success;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            do
+            {
+                success = func();
+                if (!success)
+                {
+                    Thread.Sleep(3000);
+                }
+            }
+            while (!success && sw.Elapsed <= timeout);
+
+            return success;
         }
     }
 }

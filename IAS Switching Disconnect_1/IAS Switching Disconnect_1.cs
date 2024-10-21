@@ -54,7 +54,8 @@ namespace IAS_Switching_Disconnect_1
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
-	using Newtonsoft.Json;
+    using System.Threading;
+    using Newtonsoft.Json;
 	using Skyline.DataMiner.Automation;
 	using Skyline.DataMiner.Core.DataMinerSystem.Automation;
 	using Skyline.DataMiner.Core.DataMinerSystem.Common;
@@ -204,20 +205,19 @@ namespace IAS_Switching_Disconnect_1
                 return;
             }
 
-            srcElement.SetParameterByPrimaryKey(1643, sourceId, (int)Status.Disabled);
-
             dstElement.SetParameterByPrimaryKey(1543, destinationId, (int)Status.Disabled);
+            Thread.Sleep(1000);
             dstElement.SetParameterByPrimaryKey(1546, destinationId, "-2" /*NA*/);
+            Thread.Sleep(1000);
             dstElement.SetParameterByPrimaryKey(1547, destinationId, "-2" /*NA*/);
+            Thread.Sleep(1000);
         }
 
         private void StartSRTDisconnect(IEngine engine)
         {
-            engine.Log("Start SRT Disconnect");
             var srcTable = srcDmsElement.GetTable(12000 /*SRT Outputs*/);
             var dstTable = dstDmsElement.GetTable(14000 /*SRT Inputs*/);
 
-            engine.Log($"ValidateKeysExists: {ValidateKeysExists(engine, srcTable, dstTable)}");
             if (!ValidateKeysExists(engine, srcTable, dstTable))
             {
                 return;
@@ -226,13 +226,11 @@ namespace IAS_Switching_Disconnect_1
             var srcRow = srcTable.GetRow(sourceId);
             var dstRow = dstTable.GetRow(destinationId);
 
-            engine.Log($"ValidateRowExist: {ValidateRowExist(engine, srcRow, dstRow)}");
             if (!ValidateRowExist(engine, srcRow, dstRow))
             {
                 return;
             }
 
-            engine.Log($"SRT Mode: {Convert.ToString(srcRow[6] /*SRT Mode*/)}");
             if (Convert.ToString(srcRow[6] /*SRT Mode*/) == "CALLER")
             {
                 srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)Status.Disabled);
@@ -241,8 +239,6 @@ namespace IAS_Switching_Disconnect_1
             {
                 dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)Status.Disabled);
             }
-
-            engine.Log("End SRT Disconnect");
         }
 
         private bool ValidateKeysExists(IEngine engine, IDmsTable srcTable, IDmsTable dstTable)
