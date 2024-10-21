@@ -281,6 +281,15 @@ namespace GQI_GetSources
                 {
                     sourceLabelName = FindSourceConnection(possibleDestinations, sourceTableRow);
                 }
+                else if (pathMode == "LISTENER")
+                {
+                    pathCallerAddess = CheckExceptionValue(sourceTableRow[31 /*path interface IP*/]);
+                    pathCallerSourcePort = pathListenerPort;
+                }
+                else
+                {
+                    // No action
+                }
 
                 cells = new[]
                 {
@@ -324,28 +333,7 @@ namespace GQI_GetSources
                 var destinationTable = GetTable(_dms, possibleSource, 14000 /*SRT Outputs*/);
 
                 var pathMode = Convert.ToString(sourceTableRow[6 /*Path Mode*/]);
-                if (pathMode == "LISTENER")
-                {
-                    for (int i = 0; i < destinationTable.Length; i++)
-                    {
-                        var destinationRow = destinationTable[i];
-                        var intStatus = Convert.ToInt32(destinationRow[3 /*Status*/]);
-                        var pathSourceMode = Convert.ToString(destinationRow[7 /*Path Mode*/]);
-
-                        if (pathSourceMode != "CALLER" || intStatus != 1 /*Enabled*/)
-                        {
-                            continue;
-                        }
-
-                        var pathCallerSourcePort = CheckExceptionValue(destinationRow[9 /*path 1 Caller Source Port*/]);
-                        var pathListenerPort = CheckExceptionValue(sourceTableRow[10 /*path 1 Caller Listener Port*/]);
-                        if (pathCallerSourcePort == pathListenerPort)
-                        {
-                            return Convert.ToString(destinationRow[2]);
-                        }
-                    }
-                }
-                else if (pathMode == "CALLER")
+                if (pathMode == "CALLER")
                 {
                     for (int i = 0; i < destinationTable.Length; i++)
                     {
@@ -358,10 +346,13 @@ namespace GQI_GetSources
                             continue;
                         }
 
+                        var pathCallerAddress = CheckExceptionValue(sourceTableRow[7 /*path 1 Caller Address*/]);
+                        var pathInterfaceIP = CheckExceptionValue(destinationRow[30 /*path interface IP*/]);
+
                         var pathListenerSourcePort = CheckExceptionValue(destinationRow[11 /*path 1 Listener Source Port*/]);
                         var pathCallerSourcePort = CheckExceptionValue(sourceTableRow[8 /*path 1 Caller Source Port*/]);
 
-                        if (pathCallerSourcePort == pathListenerSourcePort)
+                        if (pathCallerSourcePort == pathListenerSourcePort && pathCallerAddress == pathInterfaceIP)
                         {
                             return Convert.ToString(destinationRow[2]);
                         }
