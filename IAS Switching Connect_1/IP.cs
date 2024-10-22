@@ -18,8 +18,6 @@
         private readonly string destinationElement;
         private readonly IEngine engine;
 
-        private Element srcElement;
-        private Element dstElement;
         private IDmsElement dstDmsElement;
         private IDmsTable srcTable;
         private IDmsTable dstTable;
@@ -64,9 +62,9 @@
             var srcIpAddress = Convert.ToString(srcRow[5 /*Single Destination IP*/]);
             var srcPort = Convert.ToInt32(srcRow[6 /*Single Destination Port*/]);
 
-            dstElement.SetParameterByPrimaryKey(1546, destinationId, srcIpAddress);
+            dstTable.GetColumn<string>(1546).SetValue(destinationId, KeyType.PrimaryKey, srcIpAddress);
             Thread.Sleep(1000);
-            dstElement.SetParameterByPrimaryKey(1547, destinationId, srcPort);
+            dstTable.GetColumn<int?>(1547).SetValue(destinationId, KeyType.PrimaryKey, srcPort);
 
             if (!Retry(ValidateSets, new TimeSpan(0, 1, 0), srcIpAddress, srcPort))
             {
@@ -76,12 +74,12 @@
 
             if (srcDisabled)
             {
-                srcElement.SetParameterByPrimaryKey(1643, sourceId, (int)Status.Enabled);
+                srcTable.GetColumn<int?>(1643).SetValue(sourceId, KeyType.PrimaryKey, (int)Status.Enabled);
             }
 
             if (dstDisabled)
             {
-                dstElement.SetParameterByPrimaryKey(1543, destinationId, (int)Status.Enabled);
+                dstTable.GetColumn<int?>(1543).SetValue(destinationId, KeyType.PrimaryKey, (int)Status.Enabled);
             }
         }
 
@@ -103,8 +101,6 @@
 
             var srcDmsElement = dms.GetElement(srcElementId);
             dstDmsElement = dms.GetElement(dstElementId);
-            srcElement = engine.FindElement(srcElementId.AgentId, srcElementId.ElementId);
-            dstElement = engine.FindElement(dstElementId.AgentId, dstElementId.ElementId);
 
             srcTable = srcDmsElement.GetTable(OutputsTable);
             dstTable = dstDmsElement.GetTable(InputsTable);

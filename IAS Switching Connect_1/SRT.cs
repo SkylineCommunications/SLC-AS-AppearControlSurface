@@ -22,8 +22,6 @@
 
         private IDmsElement srcDmsElement;
         private IDmsElement dstDmsElement;
-        private Element srcElement;
-        private Element dstElement;
         private IDmsTable srcTable;
         private IDmsTable dstTable;
 
@@ -81,12 +79,11 @@
                 }
 
                 // Caller Sets (IP Address and Port)
-                srcElement.SetParameterByPrimaryKey(12058, sourceId, listenerCardIp);
-                Thread.Sleep(2000);
-                srcElement.SetParameterByPrimaryKey(12059, sourceId, listenerPort);
-                Thread.Sleep(2000);
-                srcElement.SetParameterByPrimaryKey(12060, sourceId, listenerPort);
-                Thread.Sleep(2000);
+                srcTable.GetColumn<string>(12058).SetValue(sourceId, KeyType.PrimaryKey, listenerCardIp);
+                Thread.Sleep(1000);
+                srcTable.GetColumn<int?>(12059).SetValue(sourceId, KeyType.PrimaryKey, listenerPort);
+                Thread.Sleep(1000);
+                srcTable.GetColumn<int?>(12060).SetValue(sourceId, KeyType.PrimaryKey, listenerPort);
 
                 if (!Retry(ValidateSets, new TimeSpan(0, 1, 0), listenerCardIp, listenerPort, true))
                 {
@@ -106,12 +103,11 @@
                 }
 
                 // Caller Sets (IP Address and Port)
-                dstElement.SetParameterByPrimaryKey(14059, destinationId, listenerCardIp);
-                Thread.Sleep(2000);
-                dstElement.SetParameterByPrimaryKey(14060, destinationId, listenerPort);
-                Thread.Sleep(2000);
-                dstElement.SetParameterByPrimaryKey(14061, destinationId, listenerPort);
-                Thread.Sleep(2000);
+                dstTable.GetColumn<string>(14059).SetValue(destinationId, KeyType.PrimaryKey, listenerCardIp);
+                Thread.Sleep(1000);
+                dstTable.GetColumn<int?>(14060).SetValue(destinationId, KeyType.PrimaryKey, listenerPort);
+                Thread.Sleep(1000);
+                dstTable.GetColumn<int?>(14061).SetValue(destinationId, KeyType.PrimaryKey, listenerPort);
 
                 if (!Retry(ValidateSets, new TimeSpan(0, 1, 0), listenerCardIp, listenerPort, false))
                 {
@@ -155,14 +151,12 @@
 
             if (srcDisabled)
             {
-                srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)Status.Enabled);
-                Thread.Sleep(2000);
+                srcTable.GetColumn<int?>(12054).SetValue(sourceId, KeyType.PrimaryKey, (int)Status.Enabled);
             }
 
             if (dstDisabled)
             {
-                dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)Status.Enabled);
-                Thread.Sleep(2000);
+                dstTable.GetColumn<int?>(14054).SetValue(destinationId, KeyType.PrimaryKey, (int)Status.Enabled);
             }
 
             if (!Retry(ValidateStatus, new TimeSpan(0, 1, 0)))
@@ -189,8 +183,6 @@
 
             srcDmsElement = dms.GetElement(srcElementId);
             dstDmsElement = dms.GetElement(dstElementId);
-            srcElement = engine.FindElement(srcElementId.AgentId, srcElementId.ElementId);
-            dstElement = engine.FindElement(dstElementId.AgentId, dstElementId.ElementId);
 
             srcTable = srcDmsElement.GetTable(OutputsTable);
             dstTable = dstDmsElement.GetTable(InputsTable);

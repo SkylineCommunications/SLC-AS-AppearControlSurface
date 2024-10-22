@@ -53,9 +53,11 @@ namespace IAS_Switching_Disconnect_1
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Linq;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Security.Cryptography;
     using System.Threading;
-    using Newtonsoft.Json;
+	using Newtonsoft.Json;
 	using Skyline.DataMiner.Automation;
 	using Skyline.DataMiner.Core.DataMinerSystem.Automation;
 	using Skyline.DataMiner.Core.DataMinerSystem.Common;
@@ -66,14 +68,17 @@ namespace IAS_Switching_Disconnect_1
     /// </summary>
 	public class Script
 	{
+        private const int SRTOutputsTable = 12000;
+        private const int SRTInputsTable = 14000;
+        private const int IPOutputsTable = 1600;
+        private const int IPInputsTable = 1500;
+
         private string sourceId;
         private string destinationId;
         private string sourceElement;
         private string destinationElement;
 
         private IDms dms;
-        private Element srcElement;
-        private Element dstElement;
         private IDmsElement srcDmsElement;
         private IDmsElement dstDmsElement;
 
@@ -181,14 +186,12 @@ namespace IAS_Switching_Disconnect_1
 
             srcDmsElement = dms.GetElement(srcElementId);
             dstDmsElement = dms.GetElement(dstElementId);
-            srcElement = engine.FindElement(srcElementId.AgentId, srcElementId.ElementId);
-            dstElement = engine.FindElement(dstElementId.AgentId, dstElementId.ElementId);
         }
 
         private void StartIPDisconnect(IEngine engine)
         {
-            var srcTable = srcDmsElement.GetTable(1600 /*IP Outputs*/);
-            var dstTable = dstDmsElement.GetTable(1500 /*IP Inputs*/);
+            var srcTable = srcDmsElement.GetTable(IPOutputsTable);
+            var dstTable = dstDmsElement.GetTable(IPInputsTable);
 
             var srcRow = srcTable.GetRow(sourceId);
             var dstRow = dstTable.GetRow(destinationId);
@@ -205,18 +208,22 @@ namespace IAS_Switching_Disconnect_1
                 return;
             }
 
-            dstElement.SetParameterByPrimaryKey(1543, destinationId, (int)Status.Disabled);
+            dstTable.GetColumn<int?>(1543).SetValue(destinationId, KeyType.PrimaryKey, (int)Status.Disabled);
             Thread.Sleep(1000);
-            dstElement.SetParameterByPrimaryKey(1546, destinationId, "-2" /*NA*/);
+            dstTable.GetColumn<string>(1546).SetValue(destinationId, KeyType.PrimaryKey, "-2" /*NA*/);
             Thread.Sleep(1000);
-            dstElement.SetParameterByPrimaryKey(1547, destinationId, "-2" /*NA*/);
-            Thread.Sleep(1000);
+            dstTable.GetColumn<string>(1547).SetValue(destinationId, KeyType.PrimaryKey, "-2" /*NA*/);
+
+            if (!Retry(ValidateStatus, new TimeSpan(0, 1, 0), false, false))
+            {
+                ErrorMessageDialog.ShowMessage(engine, $"IP Destination side not disabled.");
+            }
         }
 
         private void StartSRTDisconnect(IEngine engine)
         {
-            var srcTable = srcDmsElement.GetTable(12000 /*SRT Outputs*/);
-            var dstTable = dstDmsElement.GetTable(14000 /*SRT Inputs*/);
+            var srcTable = srcDmsElement.GetTable(SRTOutputsTable);
+            var dstTable = dstDmsElement.GetTable(SRTInputsTable);
 
             if (!ValidateKeysExists(engine, srcTable, dstTable))
             {
@@ -231,13 +238,19 @@ namespace IAS_Switching_Disconnect_1
                 return;
             }
 
-            if (Convert.ToString(srcRow[6] /*SRT Mode*/) == "CALLER")
+            var callerOnSource = Convert.ToString(srcRow[6] /*SRT Mode*/) == "CALLER";
+            if (callerOnSource)
             {
-                srcElement.SetParameterByPrimaryKey(12054, sourceId, (int)Status.Disabled);
+                srcTable.GetColumn<int?>(12054).SetValue(sourceId, KeyType.PrimaryKey, (int)Status.Disabled);
             }
             else
             {
-                dstElement.SetParameterByPrimaryKey(14054, destinationId, (int)Status.Disabled);
+                dstTable.GetColumn<int?>(14054).SetValue(destinationId, KeyType.PrimaryKey, (int)Status.Disabled);
+            }
+
+            if (!Retry(ValidateStatus, new TimeSpan(0, 1, 0), callerOnSource, true))
+            {
+                ErrorMessageDialog.ShowMessage(engine, $"SRT Caller side not disabled.");
             }
         }
 
@@ -276,6 +289,48 @@ namespace IAS_Switching_Disconnect_1
             }
 
             return true;
+        }
+
+        private bool ValidateStatus(bool callerOnSource, bool isSrt)
+        {
+            if (isSrt)
+            {
+                if (callerOnSource)
+                {
+                    var row = srcDmsElement.GetTable(SRTOutputsTable).GetRow(sourceId);
+                    return Convert.ToInt32(row[3]) == (int)Status.Disabled;
+                }
+                else
+                {
+                    var row = dstDmsElement.GetTable(SRTInputsTable).GetRow(destinationId);
+                    return Convert.ToInt32(row[3]) == (int)Status.Disabled;
+                }
+            }
+            else
+            {
+                var row = dstDmsElement.GetTable(IPInputsTable).GetRow(destinationId);
+                return Convert.ToInt32(row[2]) == (int)Status.Disabled;
+            }
+        }
+
+        private bool Retry(Func<bool, bool, bool> func, TimeSpan timeout, bool callerOnSource, bool isSrt)
+        {
+            bool success;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            do
+            {
+                success = func(callerOnSource, isSrt);
+                if (!success)
+                {
+                    Thread.Sleep(3000);
+                }
+            }
+            while (!success && sw.Elapsed <= timeout);
+
+            return success;
         }
     }
 
