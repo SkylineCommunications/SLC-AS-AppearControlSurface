@@ -88,7 +88,7 @@ namespace GQI_GetDestinations
         private string _srtMode;
         private string _selectedElement;
         private GQIDMS _dms;
-        private List<LiteElementInfoEvent> appearTvResponses;
+        private List<ElementHelper> elementHelperList = new List<ElementHelper>();
 
         public OnInitOutputArgs OnInit(OnInitInputArgs args)
         {
@@ -126,7 +126,33 @@ namespace GQI_GetDestinations
             args.TryGetArgumentValue(siteLocationeArg, out _siteLocation);
             args.TryGetArgumentValue(srtModeArg, out _srtMode);
             args.TryGetArgumentValue(selectedElementArg, out _selectedElement);
+
+            GetElementInfo();
+
             return new OnArgumentsProcessedOutputArgs();
+        }
+
+        private void GetElementInfo()
+        {
+            var siteFilter = !_siteLocation.IsNullOrEmpty() ? $"{_siteLocation}" : "Appear X Platform";
+
+            var appearTVRequest = new GetLiteElementInfo
+            {
+                ProtocolName = "Appear X Platform",
+                ProtocolVersion = "Production",
+                View = siteFilter,
+            };
+
+            var appearMessage = _dms.SendMessages(new DMSMessage[] { appearTVRequest });
+            foreach (var response in appearMessage.Select(x => (LiteElementInfoEvent)x))
+            {
+                if (response == null || response.State != ElementState.Active)
+                {
+                    continue;
+                }
+
+                elementHelperList.Add(new ElementHelper(response, _dms, _routingMode));
+            }
         }
 
         public GQIPage GetNextPage(GetNextPageInputArgs args)
@@ -134,40 +160,9 @@ namespace GQI_GetDestinations
             var rows = new List<GQIRow>();
             try
             {
-                var siteFilter = !_siteLocation.IsNullOrEmpty() ? $"{_siteLocation}" : "Appear X Platform";
-
-                var appearTVRequest = new GetLiteElementInfo
+                foreach (var element in elementHelperList)
                 {
-                    ProtocolName = "Appear X Platform",
-                    ProtocolVersion = "Production",
-                    View = siteFilter,
-                };
-
-                var appearMessage = _dms.SendMessages(new DMSMessage[] { appearTVRequest });
-                appearTvResponses = appearMessage.Select(x => (LiteElementInfoEvent)x).ToList();
-                foreach (var response in appearTvResponses)
-                {
-                    if (response == null || response.State != ElementState.Active)
-                    {
-                        continue;
-                    }
-
-                    object[][] destinationsTable;
-
-                    if (_routingMode.Contains("SRT"))
-                    {
-                        destinationsTable = GetTable(_dms, response, 14000 /*SRT Inputs*/);
-                        GetDestinationSrtRows(response, rows, destinationsTable);
-                    }
-                    else if (_routingMode.Contains("IP"))
-                    {
-                        destinationsTable = GetTable(_dms, response, 1500 /*IP Inputs*/);
-                        GetDestinationIpRows(response, rows, destinationsTable);
-                    }
-                    else
-                    {
-                        throw new Exception("Routing Mode not supported.");
-                    }
+                    GetRows(element, rows);
                 }
 
                 return new GQIPage(rows.ToArray())
@@ -185,13 +180,29 @@ namespace GQI_GetDestinations
             }
         }
 
-        private void GetDestinationIpRows(LiteElementInfoEvent response, List<GQIRow> rows, object[][] destinationTable)
+        private void GetRows(ElementHelper element, List<GQIRow> rows)
+        {
+            if (_routingMode.Contains("SRT"))
+            {
+                GetDestinationSrtRows(element, rows);
+            }
+            else if (_routingMode.Contains("IP"))
+            {
+                GetDestinationIpRows(element, rows);
+            }
+            else
+            {
+                throw new Exception("Routing Mode not supported.");
+            }
+        }
+
+        private void GetDestinationIpRows(ElementHelper element, List<GQIRow> rows)
         {
             GQICell[] cells;
-            var possibleSources = appearTvResponses.Where(x => (x.Name != response.Name) && (x.State == ElementState.Active)).ToList();
-            for (int i = 0; i < destinationTable.Length; i++)
+            var possibleSources = elementHelperList.Where(x => x.ElementName != element.ElementName).ToList();
+            for (int i = 0; i < element.IpInputsTable.Length; i++)
             {
-                var destinationTableRow = destinationTable[i];
+                var destinationTableRow = element.IpInputsTable[i];
                 var index = Convert.ToString(destinationTableRow[0]);
                 var label = CheckExceptionValue(destinationTableRow[1 /*label*/]);
                 var intStatus = Convert.ToInt32(destinationTableRow[2 /*Status*/]);
@@ -212,7 +223,7 @@ namespace GQI_GetDestinations
                 }
 
                 var isSelectable = true;
-                if (_selectedElement == response.Name)
+                if (_selectedElement == element.ElementName)
                 {
                     isSelectable = false;
                 }
@@ -233,13 +244,13 @@ namespace GQI_GetDestinations
                      new GQICell { Value = singleDestinationPort},
                      new GQICell { Value = "N/A" },
                      new GQICell { Value = "N/A" },
-                     new GQICell { Value = response.Name },
+                     new GQICell { Value = element.ElementName },
                      new GQICell { Value = sourceLabelName },
                      new GQICell { Value = "IP" },
                      new GQICell { Value = isSelectable},
                 };
 
-                var elementID = new ElementID(response.DataMinerID, response.ElementID);
+                var elementID = new ElementID(element.Response.DataMinerID, element.Response.ElementID);
                 var elementMetadata = new ObjectRefMetadata { Object = elementID };
                 var rowMetadata = new GenIfRowMetadata(new[] { elementMetadata });
                 var row = new GQIRow(cells) { Metadata = rowMetadata };
@@ -248,14 +259,13 @@ namespace GQI_GetDestinations
             }
         }
 
-        private void GetDestinationSrtRows(LiteElementInfoEvent response, List<GQIRow> rows, object[][] destinationsTable)
+        private void GetDestinationSrtRows(ElementHelper element, List<GQIRow> rows)
         {
             GQICell[] cells;
-
-            var possibleSources = appearTvResponses.Where(x => (x.Name != response.Name) && (x.State == ElementState.Active)).ToList();
-            for (int i = 0; i < destinationsTable.Length; i++)
+            var possibleSources = elementHelperList.Where(x => x.ElementName != element.ElementName).ToList();
+            for (int i = 0; i < element.SrtInputsTable.Length; i++)
             {
-                var destinationTableRow = destinationsTable[i];
+                var destinationTableRow = element.SrtInputsTable[i];
                 var index = Convert.ToString(destinationTableRow[0]);
                 var label = Convert.ToString(destinationTableRow[2 /*label*/]);
                 var intStatus = Convert.ToInt32(destinationTableRow[3 /*Status*/]);
@@ -274,7 +284,7 @@ namespace GQI_GetDestinations
                 {
                     isSelectable = false;
                 }
-                else if (_selectedElement == response.Name)
+                else if (_selectedElement == element.ElementName)
                 {
                     isSelectable = false;
                 }
@@ -314,13 +324,13 @@ namespace GQI_GetDestinations
                      new GQICell { Value = pathCallerSourcePort },
                      new GQICell { Value = pathCallerDestinationPort },
                      new GQICell { Value = pathListenerPort },
-                     new GQICell { Value = response.Name},
+                     new GQICell { Value = element.ElementName},
                      new GQICell { Value = sourceLabelName},
                      new GQICell { Value = "SRT" },
                      new GQICell { Value = isSelectable},
                 };
 
-                var elementID = new ElementID(response.DataMinerID, response.ElementID);
+                var elementID = new ElementID(element.Response.DataMinerID, element.Response.ElementID);
                 var elementMetadata = new ObjectRefMetadata { Object = elementID };
                 var rowMetadata = new GenIfRowMetadata(new[] { elementMetadata });
                 var row = new GQIRow(cells) { Metadata = rowMetadata };
@@ -329,16 +339,16 @@ namespace GQI_GetDestinations
             }
         }
 
-        private string FindSourceConnection(List<LiteElementInfoEvent> possibleSources, object[] destinationTableRow)
+        private string FindSourceConnection(List<ElementHelper> possibleSources, object[] destinationTableRow)
         {
             if (!possibleSources.Any())
             {
                 return "No Connection";
             }
 
-            foreach (var possibleSource in possibleSources)
+            foreach (var possibleSource in possibleSources.Select(x => x.SrtOutputsTable))
             {
-                var sourcesTable = GetTable(_dms, possibleSource, 12000 /*SRT Outputs*/);
+                var sourcesTable = possibleSource;
 
                 var pathMode = Convert.ToString(destinationTableRow[7 /*Path Mode*/]);
                 if (pathMode == "CALLER")
@@ -375,7 +385,7 @@ namespace GQI_GetDestinations
             return "No Connection";
         }
 
-        private string FindSourceIPConnection(List<LiteElementInfoEvent> possibleSources, object[] destinationTableRow)
+        private string FindSourceIPConnection(List<ElementHelper> possibleSources, object[] destinationTableRow)
         {
             if (!possibleSources.Any())
             {
@@ -390,9 +400,9 @@ namespace GQI_GetDestinations
                 return "No Connection";
             }
 
-            foreach (var possibleSource in possibleSources)
+            foreach (var possibleSource in possibleSources.Select(x => x.IpOutputsTable))
             {
-                var sourcesTable = GetTable(_dms, possibleSource, 1600 /*IP Outputs*/);
+                var sourcesTable = possibleSource;
 
                 for (int i = 0; i < sourcesTable.Length; i++)
                 {
@@ -455,8 +465,36 @@ namespace GQI_GetDestinations
 
             return sValue;
         }
+    }
 
-        public static object[][] GetTable(GQIDMS dms, LiteElementInfoEvent response, int tableId)
+    public class ElementHelper
+    {
+        private readonly GQIDMS dms;
+        private readonly string routingMode;
+
+        public ElementHelper(LiteElementInfoEvent response, GQIDMS dms, string routingMode)
+        {
+            Response = response;
+            this.routingMode = routingMode;
+            this.dms = dms;
+
+            ElementName = response.Name;
+            GetTables(response);
+        }
+
+        public LiteElementInfoEvent Response { get; set; }
+
+        public string ElementName { get; set; }
+
+        public object[][] SrtOutputsTable { get; set; }
+
+        public object[][] SrtInputsTable { get; set; }
+
+        public object[][] IpOutputsTable { get; set; }
+
+        public object[][] IpInputsTable { get; set; }
+
+        private static object[][] GetTable(GQIDMS dms, LiteElementInfoEvent response, int tableId)
         {
             var partialTableRequest = new GetPartialTableMessage
             {
@@ -502,6 +540,24 @@ namespace GQI_GetDestinations
             }
 
             return objArray;
+        }
+
+        private void GetTables(LiteElementInfoEvent response)
+        {
+            if (routingMode.Contains("SRT"))
+            {
+                SrtInputsTable = GetTable(dms, response, 14000 /*SRT Inputs*/);
+                SrtOutputsTable = GetTable(dms, response, 12000 /*SRT Outputs*/);
+            }
+            else if (routingMode.Contains("IP"))
+            {
+                IpInputsTable = GetTable(dms, response, 1500 /*IP Inputs*/);
+                IpOutputsTable = GetTable(dms, response, 1600 /*IP Outputs*/);
+            }
+            else
+            {
+                // No Action
+            }
         }
     }
 }
