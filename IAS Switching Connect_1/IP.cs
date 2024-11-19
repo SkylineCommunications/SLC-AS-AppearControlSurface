@@ -68,6 +68,7 @@
             dstTable.GetColumn<int?>(1547).SetValue(destinationId, KeyType.PrimaryKey, srcPort);
             Thread.Sleep(1000);
             dstTable.GetColumn<string>(1577).SetValue(destinationId, KeyType.PrimaryKey, srcIp);
+            Thread.Sleep(1000);
 
             if (!Retry(ValidateSets, new TimeSpan(0, 1, 0), srcIpAddress, srcPort))
             {
@@ -78,6 +79,7 @@
             if (srcDisabled)
             {
                 srcTable.GetColumn<int?>(1643).SetValue(sourceId, KeyType.PrimaryKey, (int)Status.Enabled);
+                Thread.Sleep(1000);
             }
 
             if (dstDisabled)
