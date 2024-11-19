@@ -55,10 +55,12 @@ namespace GQI_GetSources
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+
     using Skyline.DataMiner.Analytics.GenericInterface;
     using Skyline.DataMiner.Net;
     using Skyline.DataMiner.Net.Helper;
     using Skyline.DataMiner.Net.Messages;
+    using Skyline.DataMiner.Net.NetworkDiscovery;
 
     [GQIMetaData(Name = "GQI - Get Sources")]
     public sealed class GetSource : IGQIDataSource, IGQIOnInit, IGQIInputArguments
@@ -109,6 +111,7 @@ namespace GQI_GetSources
                 new GQIStringColumn("Routing Mode"),
                 new GQIStringColumn("Destination Connected Label"),
                 new GQIBooleanColumn("Is Selectable"),
+                new GQIStringColumn("Source IP"),
             };
         }
 
@@ -207,6 +210,7 @@ namespace GQI_GetSources
 
                 var singleDestinationAddress = CheckExceptionValue(sourceTableRow[5 /*Single Destination Address*/]);
                 var singleDestinationPort = CheckExceptionValue(sourceTableRow[6 /*Single Destination Port*/]);
+                var sourceIP = CheckExceptionValue(sourceTableRow[27 /*Source IP*/]);
 
                 string status;
                 if (!StateDict.TryGetValue(intStatus, out status))
@@ -234,6 +238,7 @@ namespace GQI_GetSources
                      new GQICell { Value = "IP" },
                      new GQICell { Value = "N/A" },
                      new GQICell { Value = isSelectable},
+                     new GQICell { Value = sourceIP},
                 };
 
                 var elementID = new ElementID(element.Response.DataMinerID, element.Response.ElementID);
@@ -316,6 +321,7 @@ namespace GQI_GetSources
                      new GQICell { Value = "SRT"},
                      new GQICell { Value = sourceLabelName },
                      new GQICell { Value = isSelectable},
+                     new GQICell { Value = "N/A"},
                 };
 
                 var elementID = new ElementID(element.Response.DataMinerID, element.Response.ElementID);
@@ -376,6 +382,7 @@ namespace GQI_GetSources
             var cells = new[]
             {
                      new GQICell { Value = message },
+                     new GQICell {},
                      new GQICell {},
                      new GQICell {},
                      new GQICell {},

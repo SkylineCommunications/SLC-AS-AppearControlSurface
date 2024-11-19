@@ -112,6 +112,7 @@ namespace GQI_GetDestinations
                 new GQIStringColumn("Source Connected Label"),
                 new GQIStringColumn("Routing Mode"),
                 new GQIBooleanColumn("Is Selectable"),
+                new GQIStringColumn("Source IP"),
             };
         }
 
@@ -215,6 +216,7 @@ namespace GQI_GetDestinations
 
                 var singleDestinationAddress = CheckExceptionValue(destinationTableRow[5 /*Single Destination Address*/]);
                 var singleDestinationPort = CheckExceptionValue(destinationTableRow[6 /*Single Destination Port*/]);
+                var sourceIP = CheckExceptionValue(destinationTableRow[30 /*Single Destination Port*/]);
 
                 string status;
                 if (!StateDict.TryGetValue(intStatus, out status))
@@ -248,6 +250,7 @@ namespace GQI_GetDestinations
                      new GQICell { Value = sourceLabelName },
                      new GQICell { Value = "IP" },
                      new GQICell { Value = isSelectable},
+                     new GQICell { Value = sourceIP },
                 };
 
                 var elementID = new ElementID(element.Response.DataMinerID, element.Response.ElementID);
@@ -328,6 +331,7 @@ namespace GQI_GetDestinations
                      new GQICell { Value = sourceLabelName},
                      new GQICell { Value = "SRT" },
                      new GQICell { Value = isSelectable},
+                     new GQICell { Value = "N/A" },
                 };
 
                 var elementID = new ElementID(element.Response.DataMinerID, element.Response.ElementID);
@@ -394,6 +398,7 @@ namespace GQI_GetDestinations
 
             var singleDestinationAddress = CheckExceptionValue(destinationTableRow[5 /*Single Destination Address*/]);
             var singleDestinationPort = CheckExceptionValue(destinationTableRow[6 /*Single Destination Port*/]);
+            var sourceIP = CheckExceptionValue(destinationTableRow[30 /*Source IP*/]);
 
             if (singleDestinationAddress.Equals("N/A") || singleDestinationPort.Equals("N/A"))
             {
@@ -416,8 +421,9 @@ namespace GQI_GetDestinations
 
                     var sourceRowDestinationAddress = CheckExceptionValue(sourceRow[5 /*Single Destination Address*/]);
                     var sourceRowDestinationPort = CheckExceptionValue(sourceRow[6 /*Single Destination Port*/]);
+                    var sourceRowSourceIP = CheckExceptionValue(sourceRow[27 /*Source IP*/]);
 
-                    if ((sourceRowDestinationAddress == singleDestinationAddress) && (sourceRowDestinationPort == singleDestinationPort))
+                    if ((sourceRowDestinationAddress == singleDestinationAddress) && (sourceRowDestinationPort == singleDestinationPort) && (sourceIP == sourceRowSourceIP))
                     {
                         return Convert.ToString(sourceRow[1]);
                     }
@@ -432,6 +438,7 @@ namespace GQI_GetDestinations
             var cells = new[]
             {
                      new GQICell { Value = message },
+                     new GQICell {},
                      new GQICell {},
                      new GQICell {},
                      new GQICell {},

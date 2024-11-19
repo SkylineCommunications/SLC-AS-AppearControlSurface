@@ -150,9 +150,8 @@ namespace GQI_GetDestinationInfo
                     }
                     else if (_routingMode.Contains("IP"))
                     {
-                        destinationsStatusTable = GetTable(_dms, response, 2100 /*SRT Inputs Status*/);
+                        destinationsStatusTable = GetTable(_dms, response, 2100 /*IP Inputs Status*/);
                         GetDestinationIPRows(response, rows, destinationsStatusTable);
-                        rows.Add(CreateDebugRow($"not implemented feature"));
                     }
                     else
                     {
@@ -189,7 +188,6 @@ namespace GQI_GetDestinationInfo
                 }
 
                 var totalBitrate = Convert.ToDouble(destinationStatusTableRow[1]);
-
                 totalBitrate = Math.Round(totalBitrate, 3);
                 var sTotalBitrate = $"{totalBitrate} Mbps";
                 if (totalBitrate < 0)

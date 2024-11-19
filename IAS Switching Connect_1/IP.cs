@@ -61,14 +61,17 @@
 
             var srcIpAddress = Convert.ToString(srcRow[5 /*Single Destination IP*/]);
             var srcPort = Convert.ToInt32(srcRow[6 /*Single Destination Port*/]);
+            var srcIp = Convert.ToString(srcRow[27 /*Single Source IP*/]);
 
             dstTable.GetColumn<string>(1546).SetValue(destinationId, KeyType.PrimaryKey, srcIpAddress);
             Thread.Sleep(1000);
             dstTable.GetColumn<int?>(1547).SetValue(destinationId, KeyType.PrimaryKey, srcPort);
+            Thread.Sleep(1000);
+            dstTable.GetColumn<string>(1577).SetValue(destinationId, KeyType.PrimaryKey, srcIp);
 
             if (!Retry(ValidateSets, new TimeSpan(0, 1, 0), srcIpAddress, srcPort))
             {
-                ErrorMessageDialog.ShowMessage(engine, $"IP Address and/or Port were not set on Destination.");
+                ErrorMessageDialog.ShowMessage(engine, $"IP Address, Port and/or Source IP were not set on Destination.");
                 return;
             }
 

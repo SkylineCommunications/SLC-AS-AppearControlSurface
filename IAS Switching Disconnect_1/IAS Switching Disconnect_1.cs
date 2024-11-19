@@ -213,6 +213,8 @@ namespace IAS_Switching_Disconnect_1
             dstTable.GetColumn<string>(1546).SetValue(destinationId, KeyType.PrimaryKey, "-2" /*NA*/);
             Thread.Sleep(1000);
             dstTable.GetColumn<string>(1547).SetValue(destinationId, KeyType.PrimaryKey, "-2" /*NA*/);
+            Thread.Sleep(1000);
+            dstTable.GetColumn<string>(1577).SetValue(destinationId, KeyType.PrimaryKey, "-2" /*NA*/);
 
             if (!Retry(ValidateStatus, new TimeSpan(0, 1, 0), false, false))
             {

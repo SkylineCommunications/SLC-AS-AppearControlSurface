@@ -188,7 +188,6 @@ namespace GQI_GetSourceInfo
 
                 var totalBitrate = Convert.ToDouble(sourceStatusTableRow[2]);
 
-
                 totalBitrate = Math.Round(totalBitrate, 3);
                 var sTotalBitrate = $"{totalBitrate} Mbps";
                 if (totalBitrate < 0)
