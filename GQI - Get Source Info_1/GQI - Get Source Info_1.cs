@@ -54,6 +54,7 @@ namespace GQI_GetSourceInfo
     using System;
     using System.Collections.Generic;
     using System.Linq;
+
     using Skyline.DataMiner.Analytics.GenericInterface;
     using Skyline.DataMiner.Net;
     using Skyline.DataMiner.Net.Helper;
